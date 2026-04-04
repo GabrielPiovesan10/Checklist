@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Checklist do Gerente | Seo Pacheco</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #FFFFFF; 
+            --card-bg: #F9FAFB; 
+            --primary: #F5A623; 
+            --text-dark: #1F2937; 
+            --text-light: #6B7280; 
+            --border: #E5E7EB; 
+            --success: #10B981; 
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg-color);
+            color: var(--text-dark); display: flex; justify-content: center; padding: 10px; min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%; max-width: 500px; border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column;
+            border: 1px solid var(--border); margin-bottom: 50px; height: fit-content; overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary); padding: 25px 20px; text-align: center; color: white;
+        }
+        .header h1 { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .header p { font-size: 12px; opacity: 0.9; margin-top: 5px; }
+
+        .progress-container { background: var(--card-bg); padding: 15px 20px; border-bottom: 1px solid var(--border); }
+        .progress-text { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
+        .progress-bar-bg { width: 100%; height: 10px; background: var(--border); border-radius: 10px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.4s ease; }
+
+        .lista-tarefas { list-style: none; padding: 10px 20px; background: #FFFFFF; }
+
+        .tarefa-item {
+            display: flex; align-items: center; padding: 16px 0;
+            border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.3s;
+        }
+
+        .checkbox-custom {
+            width: 28px; height: 28px; min-width: 28px; border: 2px solid var(--border);
+            border-radius: 8px; display: flex; justify-content: center; align-items: center;
+            color: transparent; background: var(--card-bg); transition: 0.2s; margin-right: 15px; flex-shrink: 0;
+        }
+
+        .tarefa-item.feita .checkbox-custom { background: var(--success); border-color: var(--success); color: #FFFFFF; }
+        .tarefa-item.feita .checkbox-custom i { display: block; font-size: 14px; }
+        .tarefa-item.feita .tarefa-nome { text-decoration: line-through; color: var(--text-light); }
+
+        .tarefa-nome { font-size: 15px; font-weight: 600; color: var(--text-dark); flex: 1; transition: 0.2s; }
+
+        .rodape { padding: 20px; background: var(--bg-color); border-top: 1px solid var(--border); }
+
+        .btn-enviar {
+            width: 100%; background: #25D366; color: #FFFFFF; border: none;
+            padding: 16px; border-radius: 12px; font-weight: 800; font-size: 15px;
+            cursor: pointer; text-transform: uppercase; transition: 0.3s;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn-enviar:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; }
+        
+        .btn-resetar {
+            width: 100%; background: transparent; color: var(--text-light); border: 1px solid var(--border);
+            padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px;
+            cursor: pointer; margin-top: 10px; transition: 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1><i class="fas fa-clipboard-check"></i> Checklist</h1>
+            <p id="data-hoje">Carregando data...</p>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-text">
+                <span>Progresso do Dia</span>
+                <span id="contador-progresso">0/0</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="barra-progresso"></div>
+            </div>
+        </div>
+
+        <ul class="lista-tarefas" id="lista">
+            </ul>
+
+        <div class="rodape">
+            <button class="btn-enviar" id="btn-whats" onclick="enviarRelatorioAline()" disabled>
+                <i class="fab fa-whatsapp"></i> Enviar Relatório p/ Aline
+            </button>
+            <button class="btn-resetar" onclick="zerarChecklist()">
+                <i class="fas fa-undo"></i> Começar Novo Dia
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // AQUI VOCÊ VAI COLOCAR AS TAREFAS QUANDO A ALINE MANDAR A FOTO DO PAPEL
+        const tarefasPadrao = [
+            "Ligar freezers e geladeiras",
+            "Conferir troco no caixa",
+            "Verificar limpeza dos banheiros",
+            "Organizar mesas do salão",
+            "Checar validade dos produtos na cozinha",
+            "Ligar letreiro luminoso",
+            "Fechar o caixa do dia"
+        ];
+
+        // Carrega as tarefas salvas no celular ou cria novas
+        let tarefas = JSON.parse(localStorage.getItem('checklistGerente')) || tarefasPadrao.map(t => ({ nome: t, feita: false }));
+
+        function atualizarData() {
+            const opcoes = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('data-hoje').textContent = new Date().toLocaleDateString('pt-BR', opcoes);
+        }
+
+        function renderizarLista() {
+            const lista = document.getElementById('lista');
+            lista.innerHTML = '';
+            
+            let concluidas = 0;
+
+            tarefas.forEach((tarefa, index) => {
+                if (tarefa.feita) concluidas++;
+
+                const li = document.createElement('li');
+                li.className = `tarefa-item ${tarefa.feita ? 'feita' : ''}`;
+                li.onclick = () => alternarTarefa(index);
+
+                li.innerHTML = `
+                    <div class="checkbox-custom"><i class="fas fa-check"></i></div>
+                    <span class="tarefa-nome">${tarefa.nome}</span>
+                `;
+                lista.appendChild(li);
+            });
+
+            atualizarProgresso(concluidas, tarefas.length);
+        }
+
+        function alternarTarefa(index) {
+            tarefas[index].feita = !tarefas[index].feita;
+            salvarDados();
+        }
+
+        function atualizarProgresso(concluidas, total) {
+            const porcentagem = total === 0 ? 0 : (concluidas / total) * 100;
+            document.getElementById('barra-progresso').style.width = `${porcentagem}%`;
+            document.getElementById('contador-progresso').textContent = `${concluidas}/${total}`;
+
+            const btnWhats = document.getElementById('btn-whats');
+            if (concluidas === total && total > 0) {
+                btnWhats.disabled = false;
+                btnWhats.innerHTML = `<i class="fab fa-whatsapp"></i> Tudo Pronto! Avisar Aline`;
+            } else {
+                btnWhats.disabled = true;
+                btnWhats.innerHTML = `<i class="fab fa-whatsapp"></i> Enviar Relatório p/ Aline`;
+            }
+        }
+
+        function enviarRelatorioAline() {
+            // Substitua pelo número de WhatsApp real da Aline (com DDD, sem espaços)
+            const numeroAline = "5519974179472"; 
+            
+            const texto = `✅ *Relatório do Gerente* ✅\n\nAline, o checklist de hoje foi finalizado 100% com sucesso! Todas as tarefas da rotina foram compridas.\n\nData: ${new Date().toLocaleDateString('pt-BR')}`;
+            
+            const link = `https://wa.me/${numeroAline}?text=${encodeURIComponent(texto)}`;
+            window.open(link, '_blank');
+        }
+
+        function zerarChecklist() {
+            if(confirm("Tem certeza que deseja zerar o checklist para começar um novo dia?")) {
+                tarefas = tarefas.map(t => ({ ...t, feita: false }));
+                salvarDados();
+            }
+        }
+
+        function salvarDados() {
+            localStorage.setItem('checklistGerente', JSON.stringify(tarefas));
+            renderizarLista();
+        }
+
+        atualizarData();
+        renderizarLista();
+    </script>
+</body>
+</html>
