@@ -87,7 +87,6 @@
         }
         .task-item:last-child { border-bottom: none; }
         
-        /* DESTAQUE DE ERRO (Quando esquece de marcar) */
         .task-item.missing-item {
             border: 2px solid var(--alert-color);
             background-color: #fff5f5;
@@ -346,7 +345,7 @@
             box.addEventListener('change', function() {
                 if(this.checked) {
                     this.parentElement.classList.add('completed');
-                    this.parentElement.classList.remove('missing-item'); // Remove o vermelho ao marcar
+                    this.parentElement.classList.remove('missing-item');
                 } else {
                     this.parentElement.classList.remove('completed');
                 }
@@ -361,24 +360,20 @@
         function abrirModal(id) { overlay.classList.add('show'); document.getElementById(id).classList.add('show'); }
         function fecharTodosModais() { overlay.classList.remove('show'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
 
-        // --- VALIDAÇÃO SILENCIOSA COM SCROLL ---
         function abrirConfirmacao() {
             const checkboxesRotina = document.querySelectorAll('.daily-task');
             let primeiroItemPendente = null;
 
-            // Limpa marcações de erro anteriores
             document.querySelectorAll('.task-item').forEach(item => item.classList.remove('missing-item'));
 
-            // Verifica pendências
             checkboxesRotina.forEach(box => {
                 if (!box.checked) {
-                    box.parentElement.classList.add('missing-item'); // Marca o item de vermelho
+                    box.parentElement.classList.add('missing-item');
                     if (!primeiroItemPendente) primeiroItemPendente = box;
                 }
             });
 
             if (primeiroItemPendente) {
-                // Rola suavemente até o primeiro erro sem mostrar alerta
                 primeiroItemPendente.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return; 
             }
@@ -416,10 +411,17 @@
             text += `*📝 DETALHES:* \n${textoDetalhes !== "" ? textoDetalhes : "Nenhum informado."}\n\n`;
             text += `_Enviado via App Checklist Gerência_`;
 
+            // Abre o WhatsApp
             window.open(`https://api.whatsapp.com/send?phone=${NUMERO_WHATSAPP}&text=${encodeURIComponent(text)}`, '_blank');
+
+            // --- A MÁGICA ACONTECE AQUI: RESET AUTOMÁTICO APÓS ENVIAR ---
+            setTimeout(() => {
+                resetChecklistConfirmed();
+            }, 1000); 
         }
 
         function abrirModalReset() { abrirModal('modal-reset'); }
+        
         function resetChecklistConfirmed() {
             fecharTodosModais();
             checkboxes.forEach(box => {
@@ -427,8 +429,13 @@
                 box.parentElement.classList.remove('completed', 'missing-item');
             });
             textareaDetalhes.value = '';
+            
+            // Fecha a aba semanal se estiver aberta
+            const content = document.getElementById('weekly-content');
+            if(content.classList.contains('show')) toggleWeekly();
+            
             atualizarProgresso();
-            salvarEstado();
+            salvarEstado(); // Limpa o LocalStorage
         }
     </script>
 </body>
