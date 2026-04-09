@@ -3,204 +3,427 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Checklist do Gerente | Seo Pacheco</title>
-   <link rel="icon" type="image/jpg" href="pacheco.jpg">
-
-<link rel="apple-touch-icon" href="pacheco.jpg">
-
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>Seo Pacheco - App Gerência</title>
     <style>
+        /* TRAVA A TELA E EVITA ARRASTE LATERAL */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Tira aquele piscar azul ao clicar */
+        }
+        
+        html, body {
+            overflow-x: hidden; /* Trava o eixo X (lados) 100% */
+            max-width: 100vw;
+            width: 100%;
+        }
+
         :root {
-            --bg-color: #FFFFFF; 
-            --card-bg: #F9FAFB; 
-            --primary: #F5A623; 
-            --text-dark: #1F2937; 
-            --text-light: #6B7280; 
-            --border: #E5E7EB; 
-            --success: #10B981; 
+            --primary-color: #2e7d32;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #757575;
+            --alert-color: #d32f2f;
+            --whatsapp-color: #25D366;
+            --weekly-color: #5c6bc0;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
         body {
-            font-family: 'Inter', sans-serif; background-color: var(--bg-color);
-            color: var(--text-dark); display: flex; justify-content: center; padding: 10px; min-height: 100vh;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-main);
         }
-
-        .app-container {
-            width: 100%; max-width: 500px; border-radius: 24px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column;
-            border: 1px solid var(--border); margin-bottom: 50px; height: fit-content; overflow: hidden;
-        }
-
-        .header {
-            background: var(--primary); padding: 25px 20px; text-align: center; color: white;
-        }
-        .header h1 { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .header p { font-size: 12px; opacity: 0.9; margin-top: 5px; }
-
-        .progress-container { background: var(--card-bg); padding: 15px 20px; border-bottom: 1px solid var(--border); }
-        .progress-text { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
-        .progress-bar-bg { width: 100%; height: 10px; background: var(--border); border-radius: 10px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.4s ease; }
-
-        .lista-tarefas { list-style: none; padding: 10px 20px; background: #FFFFFF; }
-
-        .tarefa-item {
-            display: flex; align-items: center; padding: 16px 0;
-            border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.3s;
-        }
-
-        .checkbox-custom {
-            width: 28px; height: 28px; min-width: 28px; border: 2px solid var(--border);
-            border-radius: 8px; display: flex; justify-content: center; align-items: center;
-            color: transparent; background: var(--card-bg); transition: 0.2s; margin-right: 15px; flex-shrink: 0;
-        }
-
-        .tarefa-item.feita .checkbox-custom { background: var(--success); border-color: var(--success); color: #FFFFFF; }
-        .tarefa-item.feita .checkbox-custom i { display: block; font-size: 14px; }
-        .tarefa-item.feita .tarefa-nome { text-decoration: line-through; color: var(--text-light); }
-
-        .tarefa-nome { font-size: 15px; font-weight: 600; color: var(--text-dark); flex: 1; transition: 0.2s; }
-
-        .rodape { padding: 20px; background: var(--bg-color); border-top: 1px solid var(--border); }
-
-        .btn-enviar {
-            width: 100%; background: #25D366; color: #FFFFFF; border: none;
-            padding: 16px; border-radius: 12px; font-weight: 800; font-size: 15px;
-            cursor: pointer; text-transform: uppercase; transition: 0.3s;
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
-        .btn-enviar:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; }
         
-        .btn-resetar {
-            width: 100%; background: transparent; color: var(--text-light); border: 1px solid var(--border);
-            padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px;
-            cursor: pointer; margin-top: 10px; transition: 0.3s;
+        /* CABEÇALHO TRAVADO NO TOPO */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 20px 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
         }
+        h1 { margin: 0; font-size: 24px; }
+        p.subtitle { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+        
+        .progress-wrapper { margin-top: 15px; }
+        .progress-container {
+            background-color: rgba(255, 255, 255, 0.3);
+            height: 8px; border-radius: 4px; overflow: hidden; width: 100%;
+        }
+        .progress-bar {
+            background-color: #ffffff; height: 100%; width: 0%;
+            transition: width 0.4s ease; border-radius: 4px;
+        }
+        .progress-text { font-size: 13px; font-weight: bold; margin-top: 6px; display: block; }
+
+        .container { 
+            padding: 15px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding-top: 150px; 
+            padding-bottom: 80px; 
+            overflow-x: hidden; /* Reforço contra arraste lateral */
+        }
+        
+        .category { margin-bottom: 25px; }
+        .category h2 {
+            font-size: 18px; color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px; margin-bottom: 15px;
+        }
+        .task-list {
+            background: var(--card-bg); border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;
+        }
+        .task-item {
+            display: flex; align-items: center; padding: 15px;
+            border-bottom: 1px solid #eeeeee; transition: background-color 0.2s;
+        }
+        .task-item:last-child { border-bottom: none; }
+        .task-item.completed {
+            background-color: #e8f5e9; color: var(--text-muted); text-decoration: line-through;
+        }
+        input[type="checkbox"] {
+            width: 24px; height: 24px; margin-right: 15px;
+            accent-color: var(--primary-color); cursor: pointer;
+            flex-shrink: 0; /* Evita que o checkbox amasse a tela */
+        }
+        label { flex-grow: 1; font-size: 15px; line-height: 1.4; cursor: pointer; }
+
+        .btn-weekly-toggle {
+            background-color: #e0e0e0; color: #333; border: none; border-radius: 8px;
+            padding: 15px; width: 100%; font-size: 16px; font-weight: bold;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .btn-weekly-toggle:active { background-color: #d5d5d5; }
+        .weekly-content { display: none; margin-top: 15px; }
+        .weekly-content.show { display: block; }
+
+        .alert-section {
+            background-color: #fff8f8; border: 1px solid #ffcdd2; border-radius: 8px;
+            padding: 15px; margin-bottom: 25px;
+        }
+        .alert-section h2 { color: var(--alert-color); border-bottom: 2px solid var(--alert-color); margin-top: 0; }
+        .alert-section .task-list { box-shadow: none; background: transparent; }
+        .alert-section input[type="checkbox"] { accent-color: var(--alert-color); }
+        .alert-section .task-item.completed { background-color: #ffebee; color: var(--alert-color); }
+        textarea {
+            width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc;
+            border-radius: 6px; font-family: inherit; resize: vertical; font-size: 15px;
+        }
+        
+        .buttons-container { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
+        .btn {
+            padding: 15px; border: none; border-radius: 8px; font-size: 16px;
+            font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-align: center; width: 100%; transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-submit { background-color: var(--whatsapp-color); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-reset { background-color: #757575; color: white; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); z-index: 998;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background-color: white; border-radius: 12px; padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 999;
+            width: 85%; max-width: 400px; text-align: center;
+            opacity: 0; visibility: hidden; scale: 0.8; transition: all 0.3s ease;
+        }
+        .modal.show { opacity: 1; visibility: visible; scale: 1; }
+        .modal-header { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: var(--primary-color); }
+        .modal-body { font-size: 16px; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
+        .modal-footer { display: flex; justify-content: space-around; gap: 10px; }
+        .modal-btn { padding: 12px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; flex-grow: 1; }
+        .modal-btn-ok { background-color: var(--primary-color); color: white; }
+        .modal-btn-cancel { background-color: #e0e0e0; color: #333; }
+        .modal-btn-confirm { background-color: var(--whatsapp-color); color: white; }
+        #modal-confirm .modal-header { color: var(--whatsapp-color); }
+        #modal-reset .modal-header { color: var(--alert-color); }
+        #modal-reset .modal-btn-confirm { background-color: var(--alert-color); }
+
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="header">
-            <h1><i class="fas fa-clipboard-check"></i> Checklist</h1>
-            <p id="data-hoje">Carregando data...</p>
+    <header>
+        <h1>Gerência | Checklist</h1>
+        <p class="subtitle">Seo Pacheco</p>
+        
+        <div class="progress-wrapper">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <span class="progress-text" id="progress-text">0% Concluído (Rotina)</span>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="category">
+            <h2>1. Abertura (Manhã)</h2>
+            <div class="task-list">
+                <div class="task-item"><input type="checkbox" id="t1" class="daily-task"><label for="t1">Limpeza geral</label></div>
+                <div class="task-item"><input type="checkbox" id="t2" class="daily-task"><label for="t2">Equipe uniformizada</label></div>
+                <div class="task-item"><input type="checkbox" id="t3" class="daily-task"><label for="t3">Estoque conferido (Carnes)</label></div>
+                <div class="task-item"><input type="checkbox" id="t4" class="daily-task"><label for="t4">Mise en place pronto</label></div>
+                <div class="task-item"><input type="checkbox" id="t5" class="daily-task"><label for="t5">Equipamentos funcionando</label></div>
+                <div class="task-item"><input type="checkbox" id="t6" class="daily-task"><label for="t6">Alinhamento com equipe</label></div>
+                <div class="task-item"><input type="checkbox" id="t7" class="daily-task"><label for="t7">Cobrar horário de almoço (10:15hs)</label></div>
+            </div>
         </div>
 
-        <div class="progress-container">
-            <div class="progress-text">
-                <span>Progresso do Dia</span>
-                <span id="contador-progresso">0/0</span>
-            </div>
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="barra-progresso"></div>
+        <div class="category">
+            <h2>2. Durante o Funcionamento</h2>
+            <div class="task-list">
+                <div class="task-item"><input type="checkbox" id="t8" class="daily-task"><label for="t8">Controlar tempo dos pedidos</label></div>
+                <div class="task-item"><input type="checkbox" id="t9" class="daily-task"><label for="t9">Garantir bom atendimento</label></div>
+                <div class="task-item"><input type="checkbox" id="t10" class="daily-task"><label for="t10">Passar nas mesas</label></div>
+                <div class="task-item"><input type="checkbox" id="t11" class="daily-task"><label for="t11">Resolver problemas e imprevistos</label></div>
+                <div class="task-item"><input type="checkbox" id="t12" class="daily-task"><label for="t12">Evitar desperdício</label></div>
+                <div class="task-item"><input type="checkbox" id="t13" class="daily-task"><label for="t13">Acompanhar ritmo de vendas</label></div>
             </div>
         </div>
 
-        <ul class="lista-tarefas" id="lista">
-            </ul>
+        <div class="category">
+            <h2>3. Controle de Caixa</h2>
+            <div class="task-list">
+                <div class="task-item"><input type="checkbox" id="t14" class="daily-task"><label for="t14">Conferir entradas</label></div>
+                <div class="task-item"><input type="checkbox" id="t15" class="daily-task"><label for="t15">Bater caixa</label></div>
+                <div class="task-item"><input type="checkbox" id="t16" class="daily-task"><label for="t16">Registrar sangrias</label></div>
+                <div class="task-item"><input type="checkbox" id="t17" class="daily-task"><label for="t17">Anotar faturamento</label></div>
+            </div>
+        </div>
 
-        <div class="rodape">
-            <button class="btn-enviar" id="btn-whats" onclick="enviarRelatorioAline()" disabled>
-                <i class="fab fa-whatsapp"></i> Enviar Relatório p/ Aline
+        <div class="category">
+            <h2>4. Controle de Estoque e Compras</h2>
+            <div class="task-list">
+                <div class="task-item"><input type="checkbox" id="t18" class="daily-task"><label for="t18">Contagem diária / Conferir mercadorias</label></div>
+                <div class="task-item"><input type="checkbox" id="t19" class="daily-task"><label for="t19">Separar funções e usar ficha técnica</label></div>
+                <div class="task-item"><input type="checkbox" id="t20" class="daily-task"><label for="t20">Controlar perdas e desperdícios</label></div>
+                <div class="task-item"><input type="checkbox" id="t21" class="daily-task"><label for="t21">Conferir estoque de bebidas</label></div>
+                <div class="task-item"><input type="checkbox" id="t22" class="daily-task"><label for="t22">Fazer pedido Ambev/Coca</label></div>
+                <div class="task-item"><input type="checkbox" id="t23" class="daily-task"><label for="t23">Fazer lista de mercado</label></div>
+            </div>
+        </div>
+
+        <div class="category">
+            <h2>5. Fechamento</h2>
+            <div class="task-list">
+                <div class="task-item"><input type="checkbox" id="t24" class="daily-task"><label for="t24">Limpeza final e Armazenamento correto</label></div>
+                <div class="task-item"><input type="checkbox" id="t25" class="daily-task"><label for="t25">Desligar equipamentos</label></div>
+                <div class="task-item"><input type="checkbox" id="t26" class="daily-task"><label for="t26">Verificar Gás e Água (fechados)</label></div>
+                <div class="task-item"><input type="checkbox" id="t27" class="daily-task"><label for="t27">Travamento: Freezers e Geladeiras</label></div>
+                <div class="task-item"><input type="checkbox" id="t28" class="daily-task"><label for="t28">Travamento: Portas e Acessos</label></div>
+                <div class="task-item"><input type="checkbox" id="t29" class="daily-task"><label for="t29">Verificar segurança e Registrar ocorrências</label></div>
+            </div>
+        </div>
+
+        <div class="category">
+            <button class="btn-weekly-toggle" onclick="toggleWeekly()" id="btn-weekly">
+                📅 6. Controle Semanal (1x por semana) <span>▼</span>
             </button>
-            <button class="btn-resetar" onclick="zerarChecklist()">
-                <i class="fas fa-undo"></i> Começar Novo Dia
+            <div class="weekly-content" id="weekly-content">
+                <div class="task-list">
+                    <div class="task-item"><input type="checkbox" id="t30" class="weekly-task"><label for="t30">Inventário completo</label></div>
+                    <div class="task-item"><input type="checkbox" id="t31" class="weekly-task"><label for="t31">Comparar vendas x consumo</label></div>
+                    <div class="task-item"><input type="checkbox" id="t32" class="weekly-task"><label for="t32">Reunião com Equipe</label></div>
+                    <div class="task-item"><input type="checkbox" id="t33" class="weekly-task"><label for="t33">Ajustar compras e Analisar lucro</label></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-section">
+            <h2>⚠️ 7. Alertas e Ocorrências</h2>
+            <div class="task-list">
+                <div class="task-item"><input type="checkbox" id="a1"><label for="a1">Estoque não bate</label></div>
+                <div class="task-item"><input type="checkbox" id="a2"><label for="a2">Falta de produtos</label></div>
+                <div class="task-item"><input type="checkbox" id="a3"><label for="a3">Desperdício alto</label></div>
+                <div class="task-item"><input type="checkbox" id="a4"><label for="a4">Diferença de caixa</label></div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label for="detalhes-alertas" style="font-weight: bold; font-size: 14px; color: #d32f2f;">Detalhes (Opcional):</label>
+                <textarea id="detalhes-alertas" rows="4" placeholder="Descreva aqui os detalhes e Registro de ocorrências..."></textarea>
+            </div>
+        </div>
+
+        <div class="buttons-container">
+            <button class="btn btn-submit" onclick="abrirConfirmacao()">
+                <svg width="20" height="20" viewBox="0 0 448 512" fill="white"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-5.5-2.8-23.2-8.5-44.2-27.1-16.4-14.6-27.4-32.7-30.6-38.2-3.2-5.6-.3-8.6 2.4-11.3 2.5-2.5 5.6-6.5 8.3-9.7 2.8-3.3 3.7-5.6 5.6-9.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 13.2 5.7 23.5 9.2 31.6 11.8 13.3 4.2 25.4 3.6 35 2.2 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
+                ✓ Enviar Checklist para WhatsApp
             </button>
+            <button class="btn btn-reset" onclick="abrirModalReset()">Desmarcar Todas as Tarefas (Limpar)</button>
+        </div>
+
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay" onclick="fecharTodosModais()"></div>
+    <div id="modal-alert" class="modal">
+        <div class="modal-header">⚠️ Atenção</div>
+        <div class="modal-body" id="modal-alert-body">Nenhuma tarefa marcada.</div>
+        <div class="modal-footer"><button class="modal-btn modal-btn-ok" onclick="fecharTodosModais()">OK</button></div>
+    </div>
+    <div id="modal-confirm" class="modal">
+        <div class="modal-header">🚀 Confirmar Envio?</div>
+        <div class="modal-body">Deseja enviar o relatório finalizado para o WhatsApp do gerente?</div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="fecharTodosModais()">Cancelar</button>
+            <button class="modal-btn modal-btn-confirm" onclick="finalizarEEnviar()">Sim, Enviar</button>
+        </div>
+    </div>
+    <div id="modal-reset" class="modal">
+        <div class="modal-header">🔄 Limpar Tudo?</div>
+        <div class="modal-body">Tem certeza que deseja desmarcar todas as tarefas e limpar as ocorrências? Essa ação não pode ser desfeita.</div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="fecharTodosModais()">Cancelar</button>
+            <button class="modal-btn modal-btn-confirm" onclick="resetChecklistConfirmed()">Sim, Limpar</button>
         </div>
     </div>
 
     <script>
-        // AQUI VOCÊ VAI COLOCAR AS TAREFAS QUANDO A ALINE MANDAR A FOTO DO PAPEL
-        const tarefasPadrao = [
-            "Ligar freezers e geladeiras",
-            "Conferir troco no caixa",
-            "Verificar limpeza dos banheiros",
-            "Organizar mesas do salão",
-            "Checar validade dos produtos na cozinha",
-            "Ligar letreiro luminoso",
-            "Fechar o caixa do dia"
-        ];
+        const NUMERO_WHATSAPP = "5519993405480"; 
 
-        // Carrega as tarefas salvas no celular ou cria novas
-        let tarefas = JSON.parse(localStorage.getItem('checklistGerente')) || tarefasPadrao.map(t => ({ nome: t, feita: false }));
-
-        function atualizarData() {
-            const opcoes = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('data-hoje').textContent = new Date().toLocaleDateString('pt-BR', opcoes);
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const overlay = document.getElementById('modal-overlay');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        function toggleWeekly() {
+            const content = document.getElementById('weekly-content');
+            const btn = document.getElementById('btn-weekly');
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                btn.innerHTML = '📅 6. Controle Semanal (1x por semana) <span>▼</span>';
+            } else {
+                content.classList.add('show');
+                btn.innerHTML = '📅 6. Controle Semanal (1x por semana) <span>▲</span>';
+            }
         }
 
-        function renderizarLista() {
-            const lista = document.getElementById('lista');
-            lista.innerHTML = '';
+        function atualizarProgresso() {
+            let checkboxesRotina = document.querySelectorAll('.daily-task');
+            let marcadas = document.querySelectorAll('.daily-task:checked').length;
+            let total = checkboxesRotina.length;
             
-            let concluidas = 0;
+            let porcentagem = total === 0 ? 0 : Math.round((marcadas / total) * 100);
+            
+            progressBar.style.width = porcentagem + '%';
+            progressText.innerText = porcentagem + '% Concluído (Rotina)';
+        }
 
-            tarefas.forEach((tarefa, index) => {
-                if (tarefa.feita) concluidas++;
+        checkboxes.forEach(box => {
+            box.addEventListener('change', function() {
+                if(this.checked) {
+                    this.parentElement.classList.add('completed');
+                } else {
+                    this.parentElement.classList.remove('completed');
+                }
+                atualizarProgresso();
+            });
+        });
 
-                const li = document.createElement('li');
-                li.className = `tarefa-item ${tarefa.feita ? 'feita' : ''}`;
-                li.onclick = () => alternarTarefa(index);
+        atualizarProgresso();
 
-                li.innerHTML = `
-                    <div class="checkbox-custom"><i class="fas fa-check"></i></div>
-                    <span class="tarefa-nome">${tarefa.nome}</span>
-                `;
-                lista.appendChild(li);
+        function abrirModal(id) { overlay.classList.add('show'); document.getElementById(id).classList.add('show'); }
+        function fecharTodosModais() { overlay.classList.remove('show'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
+        function abrirAlerta(mensagem) { document.getElementById('modal-alert-body').innerText = mensagem; abrirModal('modal-alert'); }
+
+        function abrirConfirmacao() {
+            let marcadas = document.querySelectorAll('.daily-task:checked').length;
+            let semanaisMarcadas = document.querySelectorAll('.weekly-task:checked').length;
+            let alertasMarcados = document.querySelectorAll('.alert-section input[type="checkbox"]:checked').length;
+            let textoDetalhes = document.getElementById('detalhes-alertas').value.trim();
+            
+            if(marcadas === 0 && semanaisMarcadas === 0 && alertasMarcados === 0 && textoDetalhes === "") {
+                abrirAlerta("Nenhuma tarefa ou ocorrência foi preenchida ainda!");
+                return;
+            }
+            abrirModal('modal-confirm');
+        }
+
+        function finalizarEEnviar() {
+            fecharTodosModais();
+            
+            let todosCheckboxesRotina = document.querySelectorAll('.daily-task');
+            let totalRoutine = todosCheckboxesRotina.length;
+            let marcadasRoutine = document.querySelectorAll('.daily-task:checked').length;
+            
+            let tarefasPendentes = [];
+            todosCheckboxesRotina.forEach(box => {
+                if(!box.checked) { tarefasPendentes.push(box.nextElementSibling.innerText); }
             });
 
-            atualizarProgresso(concluidas, tarefas.length);
-        }
+            let tarefasSemanaisMarcadas = document.querySelectorAll('.weekly-task:checked');
+            let alertasMarcados = document.querySelectorAll('.alert-section input[type="checkbox"]:checked');
+            let textoDetalhes = document.getElementById('detalhes-alertas').value.trim();
 
-        function alternarTarefa(index) {
-            tarefas[index].feita = !tarefas[index].feita;
-            salvarDados();
-        }
+            let date = new Date().toLocaleDateString('pt-BR');
+            let text = `*📋 CHECKLIST GERÊNCIA - SEO PACHECO*\n`;
+            text += `🗓️ Data: ${date}\n`;
+            text += `---------------------------------\n\n`;
+            
+            text += `*📊 RESUMO DA ROTINA:* ${marcadasRoutine} de ${totalRoutine} concluídas.\n\n`;
 
-        function atualizarProgresso(concluidas, total) {
-            const porcentagem = total === 0 ? 0 : (concluidas / total) * 100;
-            document.getElementById('barra-progresso').style.width = `${porcentagem}%`;
-            document.getElementById('contador-progresso').textContent = `${concluidas}/${total}`;
-
-            const btnWhats = document.getElementById('btn-whats');
-            if (concluidas === total && total > 0) {
-                btnWhats.disabled = false;
-                btnWhats.innerHTML = `<i class="fab fa-whatsapp"></i> Tudo Pronto! Avisar Aline`;
+            if (tarefasPendentes.length > 0) {
+                text += `*❌ PENDÊNCIAS DA ROTINA:* \n`;
+                tarefasPendentes.forEach(tarefa => { text += `- ${tarefa}\n`; });
+                text += `\n`;
             } else {
-                btnWhats.disabled = true;
-                btnWhats.innerHTML = `<i class="fab fa-whatsapp"></i> Enviar Relatório p/ Aline`;
+                text += `*🌟 PENDÊNCIAS:* Nenhuma! Todas as tarefas de rotina foram concluídas.\n\n`;
             }
-        }
 
-        function enviarRelatorioAline() {
-            // Substitua pelo número de WhatsApp real da Aline (com DDD, sem espaços)
-            const numeroAline = "5519974179472"; 
-            
-            const texto = `✅ *Relatório do Gerente* ✅\n\nAline, o checklist de hoje foi finalizado 100% com sucesso! Todas as tarefas da rotina foram compridas.\n\nData: ${new Date().toLocaleDateString('pt-BR')}`;
-            
-            const link = `https://wa.me/${numeroAline}?text=${encodeURIComponent(texto)}`;
-            window.open(link, '_blank');
-        }
-
-        function zerarChecklist() {
-            if(confirm("Tem certeza que deseja zerar o checklist para começar um novo dia?")) {
-                tarefas = tarefas.map(t => ({ ...t, feita: false }));
-                salvarDados();
+            if (tarefasSemanaisMarcadas.length > 0) {
+                text += `*📅 CONTROLE SEMANAL REALIZADO:* \n`;
+                tarefasSemanaisMarcadas.forEach(tarefa => { text += `- ${tarefa.nextElementSibling.innerText}\n`; });
+                text += `\n`;
             }
+
+            if (alertasMarcados.length > 0) {
+                text += `*⚠️ ALERTAS DO DIA:* \n`;
+                alertasMarcados.forEach(alert => { text += `- ${alert.nextElementSibling.innerText}\n`; });
+                text += `\n`;
+            } else {
+                text += `*⚠️ ALERTAS:* Nenhum problema detectado.\n\n`;
+            }
+
+            text += `*📝 DETALHES/OCORRÊNCIAS:* \n`;
+            text += textoDetalhes !== "" ? `${textoDetalhes}\n` : `Nenhum detalhe informado.\n`;
+            text += `\n---------------------------------\n`;
+            text += `_Enviado via App Gerência Seo Pacheco_`;
+
+            let encodedText = encodeURIComponent(text);
+            let whatsappUrl = `https://api.whatsapp.com/send?phone=${NUMERO_WHATSAPP}&text=${encodedText}`;
+            
+            let a = document.createElement('a'); a.href = whatsappUrl;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
-        function salvarDados() {
-            localStorage.setItem('checklistGerente', JSON.stringify(tarefas));
-            renderizarLista();
+        function abrirModalReset() { abrirModal('modal-reset'); }
+        function resetChecklistConfirmed() {
+            fecharTodosModais();
+            checkboxes.forEach(box => {
+                box.checked = false;
+                box.parentElement.classList.remove('completed');
+            });
+            document.getElementById('detalhes-alertas').value = '';
+            
+            const content = document.getElementById('weekly-content');
+            if(content.classList.contains('show')) toggleWeekly();
+            
+            atualizarProgresso();
         }
-
-        atualizarData();
-        renderizarLista();
     </script>
 </body>
 </html>
