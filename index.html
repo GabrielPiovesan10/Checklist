@@ -8,11 +8,11 @@
         /* TRAVA A TELA E EVITA ARRASTE LATERAL */
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; /* Tira aquele piscar azul ao clicar */
+            -webkit-tap-highlight-color: transparent;
         }
         
         html, body {
-            overflow-x: hidden; /* Trava o eixo X (lados) 100% */
+            overflow-x: hidden;
             max-width: 100vw;
             width: 100%;
         }
@@ -68,7 +68,7 @@
             margin: 0 auto; 
             padding-top: 150px; 
             padding-bottom: 80px; 
-            overflow-x: hidden; /* Reforço contra arraste lateral */
+            overflow-x: hidden;
         }
         
         .category { margin-bottom: 25px; }
@@ -92,7 +92,7 @@
         input[type="checkbox"] {
             width: 24px; height: 24px; margin-right: 15px;
             accent-color: var(--primary-color); cursor: pointer;
-            flex-shrink: 0; /* Evita que o checkbox amasse a tela */
+            flex-shrink: 0;
         }
         label { flex-grow: 1; font-size: 15px; line-height: 1.4; cursor: pointer; }
 
@@ -299,7 +299,34 @@
         const overlay = document.getElementById('modal-overlay');
         const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('progress-text');
+        const textareaDetalhes = document.getElementById('detalhes-alertas');
         
+        // --- FUNÇÕES DE MEMÓRIA (LOCALSTORAGE) ---
+        function salvarEstado() {
+            checkboxes.forEach(box => {
+                localStorage.setItem('gerencia_app_' + box.id, box.checked);
+            });
+            localStorage.setItem('gerencia_app_detalhes', textareaDetalhes.value);
+        }
+
+        function carregarEstado() {
+            checkboxes.forEach(box => {
+                let salvo = localStorage.getItem('gerencia_app_' + box.id);
+                if (salvo === 'true') {
+                    box.checked = true;
+                    box.parentElement.classList.add('completed');
+                }
+            });
+            
+            let detalhesSalvos = localStorage.getItem('gerencia_app_detalhes');
+            if (detalhesSalvos) {
+                textareaDetalhes.value = detalhesSalvos;
+            }
+            
+            atualizarProgresso();
+        }
+        // -----------------------------------------
+
         function toggleWeekly() {
             const content = document.getElementById('weekly-content');
             const btn = document.getElementById('btn-weekly');
@@ -323,6 +350,7 @@
             progressText.innerText = porcentagem + '% Concluído (Rotina)';
         }
 
+        // Adiciona evento de mudança para salvar e atualizar barra
         checkboxes.forEach(box => {
             box.addEventListener('change', function() {
                 if(this.checked) {
@@ -331,10 +359,15 @@
                     this.parentElement.classList.remove('completed');
                 }
                 atualizarProgresso();
+                salvarEstado(); // Salva na memória ao clicar
             });
         });
 
-        atualizarProgresso();
+        // Adiciona evento para salvar o texto sempre que digitar
+        textareaDetalhes.addEventListener('input', salvarEstado);
+
+        // Carrega a memória quando a página abre
+        document.addEventListener('DOMContentLoaded', carregarEstado);
 
         function abrirModal(id) { overlay.classList.add('show'); document.getElementById(id).classList.add('show'); }
         function fecharTodosModais() { overlay.classList.remove('show'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
@@ -344,7 +377,7 @@
             let marcadas = document.querySelectorAll('.daily-task:checked').length;
             let semanaisMarcadas = document.querySelectorAll('.weekly-task:checked').length;
             let alertasMarcados = document.querySelectorAll('.alert-section input[type="checkbox"]:checked').length;
-            let textoDetalhes = document.getElementById('detalhes-alertas').value.trim();
+            let textoDetalhes = textareaDetalhes.value.trim();
             
             if(marcadas === 0 && semanaisMarcadas === 0 && alertasMarcados === 0 && textoDetalhes === "") {
                 abrirAlerta("Nenhuma tarefa ou ocorrência foi preenchida ainda!");
@@ -367,7 +400,7 @@
 
             let tarefasSemanaisMarcadas = document.querySelectorAll('.weekly-task:checked');
             let alertasMarcados = document.querySelectorAll('.alert-section input[type="checkbox"]:checked');
-            let textoDetalhes = document.getElementById('detalhes-alertas').value.trim();
+            let textoDetalhes = textareaDetalhes.value.trim();
 
             let date = new Date().toLocaleDateString('pt-BR');
             let text = `*📋 CHECKLIST GERÊNCIA - SEO PACHECO*\n`;
@@ -417,12 +450,13 @@
                 box.checked = false;
                 box.parentElement.classList.remove('completed');
             });
-            document.getElementById('detalhes-alertas').value = '';
+            textareaDetalhes.value = '';
             
             const content = document.getElementById('weekly-content');
             if(content.classList.contains('show')) toggleWeekly();
             
             atualizarProgresso();
+            salvarEstado(); // Atualiza a memória com as opções vazias
         }
     </script>
 </body>
