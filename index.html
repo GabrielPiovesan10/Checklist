@@ -14,6 +14,17 @@
           serviceWorkerPath: "OneSignalSDKWorker.js", 
           serviceWorkerParam: { scope: "/Checklist/" } 
         });
+
+        // MÁGICA NOVA AQUI: Verifica se já ativou antes e arruma o botão na hora!
+        if (OneSignal.Notifications.permission === true) {
+            const btn = document.getElementById('btn-notify');
+            if(btn) {
+                btn.innerText = "🔔 Notificações Ativadas";
+                btn.style.backgroundColor = "#e8f5e9";
+                btn.style.color = "#757575"; // Deixa a letra mais apagada pra mostrar que tá inativo
+                btn.disabled = true;
+            }
+        }
       });
     </script>
 
@@ -40,7 +51,7 @@
             --whatsapp-color: #25D366;
             --obs-color: #0277bd;
             --special-day-bg: #fff9c4;
-            --notify-color: #fbc02d; /* Cor do botão de notificação */
+            --notify-color: #fbc02d;
         }
         body {
             font-family: 'Segoe UI', Roboto, Arial, sans-serif;
@@ -400,7 +411,7 @@
         function fecharTodosModais() { overlay.classList.remove('show'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
         function abrirConfirmacao() { overlay.classList.add('show'); document.getElementById('modal-confirm').classList.add('show'); }
 
-        // FUNÇÃO PARA ATIVAR O ONESIGNAL
+        // FUNÇÃO PARA ATIVAR O ONESIGNAL (Ação do Clique)
         function ativarNotificacao() {
             OneSignalDeferred.push(function(OneSignal) {
                 OneSignal.Notifications.requestPermission().then(function(permission) {
@@ -408,6 +419,7 @@
                         let btn = document.getElementById('btn-notify');
                         btn.innerText = "🔔 Notificações Ativadas";
                         btn.style.backgroundColor = "#e8f5e9";
+                        btn.style.color = "#757575";
                         btn.disabled = true;
                     }
                 });
