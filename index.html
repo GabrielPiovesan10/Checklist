@@ -11,6 +11,8 @@
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "8c0d3edb-7f66-4e77-b10b-3bfda5c24419", // Seu ID exclusivo
+          serviceWorkerPath: "OneSignalSDKWorker.js", 
+          serviceWorkerParam: { scope: "/Checklist/" } // A mágica que resolveu o bug!
         });
       });
     </script>
@@ -27,7 +29,6 @@
             --text-muted: #757575;
             --alert-color: #d32f2f;
             --whatsapp-color: #25D366;
-            --obs-color: #0277bd;
             --special-day-bg: #fff9c4;
         }
         body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); }
@@ -52,7 +53,7 @@
         .task-item-group { flex-direction: column; align-items: flex-start; }
         .task-row { display: flex; align-items: center; width: 100%; }
         
-        input[type="checkbox"] { width: 24px; height: 24px; margin-right: 15px; accent-color: var(--primary-color); flex-shrink: 0; }
+        input[type="checkbox"] { width: 24px; height: 24px; margin-right: 15px; accent-color: var(--primary-color); flex-shrink: 0; cursor: pointer; }
         label { flex-grow: 1; font-size: 15px; cursor: pointer; }
         
         .task-obs-input { 
@@ -65,7 +66,7 @@
 
         .btn-weekly-toggle { 
             background: #e0e0e0; border: none; padding: 15px; width: 100%; border-radius: 8px; 
-            font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px;
+            font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; cursor: pointer;
         }
         .weekly-content { display: none; margin-top: 10px; }
         .weekly-content.show { display: block; }
@@ -103,20 +104,41 @@
                 <div class="task-item"><input type="checkbox" id="t3" class="daily-task"><label for="t3">Mise en place pronto</label></div>
                 <div class="task-item"><input type="checkbox" id="t4" class="daily-task"><label for="t4">Alinhamento matinal</label></div>
                 <div class="task-item"><input type="checkbox" id="t5" class="daily-task"><label for="t5">Bater caixa (Fechamento)</label></div>
-                <div class="task-item"><input type="checkbox" id="t6" class="daily-task"><label for="t6">Pedido de VERDURAS</label></div>
             </div>
         </div>
 
         <div class="category">
-            <h2>📅 2. Tarefas Específicas</h2>
+            <h2>📦 2. Controle de Estoque (Faltas)</h2>
+            <div class="task-list">
+                <div class="task-item-group">
+                    <div class="task-row"><input type="checkbox" id="e1" class="daily-task"><label for="e1">Carnes e Misturas</label></div>
+                    <input type="text" id="obs-e1" class="task-obs-input" placeholder="Anotar faltas de carnes...">
+                </div>
+                <div class="task-item-group">
+                    <div class="task-row"><input type="checkbox" id="e2" class="daily-task"><label for="e2">Bebidas em Geral</label></div>
+                    <input type="text" id="obs-e2" class="task-obs-input" placeholder="Anotar faltas de bebidas...">
+                </div>
+                <div class="task-item-group">
+                    <div class="task-row"><input type="checkbox" id="e3" class="daily-task"><label for="e3">Produtos de Limpeza</label></div>
+                    <input type="text" id="obs-e3" class="task-obs-input" placeholder="Anotar faltas de limpeza...">
+                </div>
+                <div class="task-item-group">
+                    <div class="task-row"><input type="checkbox" id="e4" class="daily-task"><label for="e4">Verduras / Hortifruti</label></div>
+                    <input type="text" id="obs-e4" class="task-obs-input" placeholder="Anotar faltas de hortifruti...">
+                </div>
+            </div>
+        </div>
+
+        <div class="category">
+            <h2>📅 3. Tarefas Específicas</h2>
             <div class="task-list">
                 <div class="task-item-group" id="group-quarta" data-day="quarta">
                     <strong>📍 QUARTA-FEIRA</strong>
-                    <div class="task-row"><input type="checkbox" id="q1" class="conditional-task"><label for="q1">Lista de mercado / Ambev</label></div>
+                    <div class="task-row"><input type="checkbox" id="q1" class="conditional-task"><label for="q1">Lista de mercado / Ambev completa</label></div>
                 </div>
                 <div class="task-item-group" id="group-quinta" data-day="quinta">
                     <strong>📍 QUINTA-FEIRA</strong>
-                    <div class="task-row"><input type="checkbox" id="qui1" class="conditional-task"><label for="qui1">Escala de funcionários</label></div>
+                    <div class="task-row"><input type="checkbox" id="qui1" class="conditional-task"><label for="qui1">Escala de funcionários definida</label></div>
                 </div>
                 <div class="task-item-group" id="group-sexta" data-day="sexta">
                     <strong>📍 SEXTA-FEIRA</strong>
@@ -126,26 +148,26 @@
         </div>
 
         <div class="category">
-            <h2>3. Fechamento e Vistoria</h2>
+            <h2>4. Fechamento e Vistoria</h2>
             <div class="task-list">
                 <div class="task-item-group">
                     <div class="task-row"><input type="checkbox" id="f1" class="daily-task"><label for="f1">Checklist COZINHA</label></div>
-                    <input type="text" id="obs-f1" class="task-obs-input" placeholder="Obs da cozinha...">
+                    <input type="text" id="obs-f1" class="task-obs-input" placeholder="Problemas na cozinha?">
                 </div>
                 <div class="task-item-group">
                     <div class="task-row"><input type="checkbox" id="f2" class="daily-task"><label for="f2">Checklist SALÃO</label></div>
-                    <input type="text" id="obs-f2" class="task-obs-input" placeholder="Obs do salão...">
+                    <input type="text" id="obs-f2" class="task-obs-input" placeholder="Problemas no salão?">
                 </div>
             </div>
         </div>
 
         <div class="category">
             <button class="btn-weekly-toggle" onclick="document.getElementById('weekly-content').classList.toggle('show')">
-                📋 Controle Semanal <span>▼</span>
+                📋 Controle Semanal Extra <span>▼</span>
             </button>
             <div class="weekly-content" id="weekly-content">
                 <div class="task-list">
-                    <div class="task-item"><input type="checkbox" id="w1"><label for="w1">Inventário completo</label></div>
+                    <div class="task-item"><input type="checkbox" id="w1"><label for="w1">Inventário completo do freezer</label></div>
                     <div class="task-item"><input type="checkbox" id="w2"><label for="w2">Cotar novos fornecedores</label></div>
                 </div>
             </div>
@@ -153,37 +175,38 @@
 
         <div style="background:#e3f2fd; padding:15px; border-radius:8px; margin-top:20px;">
             <h3 style="margin:0; font-size:16px;">📝 Observações Gerais</h3>
-            <textarea id="obs-geral" rows="3" placeholder="Algo fora do comum hoje?"></textarea>
+            <textarea id="obs-geral" rows="3" placeholder="Algo fora do comum hoje? Quebras, reclamações ou elogios..."></textarea>
         </div>
 
         <div class="buttons-container">
-            <button class="btn btn-submit" onclick="abrirConfirmacao()">✓ Enviar Checklist (WhatsApp)</button>
+            <button class="btn btn-submit" onclick="abrirConfirmacao()">✓ Enviar Relatório (WhatsApp)</button>
             <button class="btn btn-notify" onclick="ativarNotificacao()" id="btn-notify">🔔 Ativar Lembrete Diário</button>
-            <button class="btn btn-reset" onclick="limparTudo()">Limpar</button>
+            <button class="btn btn-reset" onclick="limparTudo()">Limpar Tudo</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="overlay" onclick="fecharModais()"></div>
     <div class="modal" id="modal-confirm">
         <h3>🚀 Finalizar e Enviar?</h3>
-        <p>O relatório será gerado para o WhatsApp da Aline.</p>
-        <button class="btn btn-submit" style="width:100%" onclick="finalizarEEnviar()">Sim, Enviar</button>
+        <p>O relatório será gerado para o WhatsApp da Aline com todas as informações de estoque.</p>
+        <button class="btn btn-submit" style="width:100%" onclick="finalizarEEnviar()">Sim, Enviar Agora</button>
     </div>
 
     <script>
-        const WHATSAPP = "5519993405480";
+        // Substitua pelo número da Aline com DDD, sem espaços (ex: 5519999999999)
+        const WHATSAPP = "5519993405480"; 
 
         window.onload = function() {
             const dias = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
             const hoje = dias[new Date().getDay()];
             
-            // Destaca o dia e ativa as tarefas dele
+            // Lógica para ativar as tarefas específicas do dia da semana
             if(document.getElementById('group-' + hoje)) {
                 document.getElementById('group-' + hoje).classList.add('day-highlight');
                 document.querySelectorAll('#group-' + hoje + ' .conditional-task').forEach(t => t.classList.add('daily-task'));
             }
 
-            // Desativa tarefas de outros dias
+            // Desativa as tarefas que não são do dia atual
             document.querySelectorAll('.conditional-task').forEach(t => {
                 if(!t.classList.contains('daily-task')) {
                     t.disabled = true;
@@ -191,7 +214,7 @@
                 }
             });
 
-            // Eventos de clique
+            // Adiciona evento de clique para calcular o progresso
             document.querySelectorAll('input[type="checkbox"]').forEach(box => {
                 box.addEventListener('change', function() {
                     let item = this.closest('.task-item') || this.closest('.task-item-group');
@@ -244,26 +267,51 @@
             text += `🗓️ Data: ${new Date().toLocaleDateString()}\n\n`;
             text += `*📊 STATUS:* ${document.getElementById('progress-text').innerText}\n\n`;
             
-            if(pendentes.length > 0) {
-                text += `*❌ PENDÊNCIAS:* \n- ${pendentes.join('\n- ')}\n\n`;
-            } else {
-                text += `*✅ TUDO OK:* Nenhuma pendência rotineira!\n\n`;
+            // Faltas de Estoque
+            let carnes = document.getElementById('obs-e1').value;
+            let bebidas = document.getElementById('obs-e2').value;
+            let limpeza = document.getElementById('obs-e3').value;
+            let hortifruti = document.getElementById('obs-e4').value;
+            
+            let temEstoque = carnes || bebidas || limpeza || hortifruti;
+            if(temEstoque) {
+                text += `*📦 PEDIDOS / FALTAS NO ESTOQUE:*\n`;
+                if(carnes) text += `- Carnes: ${carnes}\n`;
+                if(bebidas) text += `- Bebidas: ${bebidas}\n`;
+                if(limpeza) text += `- Limpeza: ${limpeza}\n`;
+                if(hortifruti) text += `- Hortifruti: ${hortifruti}\n`;
+                text += `\n`;
             }
 
+            // Pendências da Rotina
+            if(pendentes.length > 0) {
+                text += `*❌ TAREFAS PENDENTES:* \n- ${pendentes.join('\n- ')}\n\n`;
+            } else {
+                text += `*✅ ROTINA OK:* Nenhuma pendência diária!\n\n`;
+            }
+
+            // Observações Finais
             let c = document.getElementById('obs-f1').value;
             let s = document.getElementById('obs-f2').value;
             let g = document.getElementById('obs-geral').value;
 
-            if(c) text += `*Cozinha:* ${c}\n`;
-            if(s) text += `*Salão:* ${s}\n`;
-            if(g) text += `*Geral:* ${g}\n`;
+            if(c || s || g) {
+                text += `*📝 OBSERVAÇÕES DE VISTORIA:*\n`;
+                if(c) text += `- Cozinha: ${c}\n`;
+                if(s) text += `- Salão: ${s}\n`;
+                if(g) text += `- Geral: ${g}\n`;
+            }
 
-            text += `\n_Enviado via GP Tech_`;
+            text += `\n_Gerado pelo App GP Tech_`;
+            
+            // Redireciona para o WhatsApp
             window.location.href = `https://api.whatsapp.com/send?phone=${WHATSAPP}&text=${encodeURIComponent(text)}`;
         }
 
         function limparTudo() {
-            if(confirm("Limpar checklist?")) window.location.reload();
+            if(confirm("Tem certeza que deseja limpar todo o checklist de hoje?")) {
+                window.location.reload();
+            }
         }
     </script>
 </body>
