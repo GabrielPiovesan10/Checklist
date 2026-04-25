@@ -15,31 +15,68 @@
           serviceWorkerParam: { scope: "/Checklist/" } 
         });
 
-        // MÁGICA NOVA AQUI: Verifica se já ativou antes e arruma o botão na hora!
         if (OneSignal.Notifications.permission === true) {
             const btn = document.getElementById('btn-notify');
             if(btn) {
                 btn.innerText = "🔔 Notificações Ativadas";
                 btn.style.backgroundColor = "#e8f5e9";
-                btn.style.color = "#757575"; // Deixa a letra mais apagada pra mostrar que tá inativo
+                btn.style.color = "#757575"; 
                 btn.disabled = true;
             }
         }
       });
     </script>
 
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+      // Suas chaves do banco de dados
+      const firebaseConfig = {
+        apiKey: "AIzaSyDQgOXyqCXd8aIR8ZyNTktb7drVu_pJYq0",
+        authDomain: "app-seo-pacheco-8cc75.firebaseapp.com",
+        projectId: "app-seo-pacheco-8cc75",
+        storageBucket: "app-seo-pacheco-8cc75.firebasestorage.app",
+        messagingSenderId: "702803673939",
+        appId: "1:702803673939:web:fe6d638666191e9671d7a6"
+      };
+
+      // Inicializa a conexão
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Cria a função global para salvar no banco
+      window.salvarNoBancoDaGPTech = async function(textoWhatsApp, marcadas) {
+          const btn = document.querySelector('.modal-btn-confirm');
+          btn.innerText = "Salvando..."; // Dá um feedback visual legal pro usuário
+          btn.disabled = true;
+
+          try {
+              // Salva os dados numa "gaveta" chamada 'historico_checklists'
+              await addDoc(collection(db, "historico_checklists"), {
+                  data_envio: new Date().toLocaleDateString('pt-BR'),
+                  tarefas_concluidas: marcadas,
+                  horario_exato: serverTimestamp()
+              });
+              console.log("Dados salvos na nuvem com sucesso!");
+          } catch (e) {
+              console.error("Erro ao salvar na nuvem:", e);
+              // Se der pau na internet e não salvar no Firebase, ele ignora e manda pro WhatsApp do mesmo jeito pra não prejudicar a operação!
+          }
+
+          // Fecha o modal e abre o WhatsApp da Aline
+          fecharTodosModais();
+          window.location.href = `https://api.whatsapp.com/send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
+          
+          btn.innerText = "Sim, Enviar";
+          btn.disabled = false;
+      };
+    </script>
+
     <style>
         /* TRAVA A TELA E EVITA ARRASTE LATERAL */
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        html, body {
-            overflow-x: hidden;
-            max-width: 100vw;
-            width: 100%;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
 
         :root {
             --primary-color: #2e7d32;
@@ -53,143 +90,60 @@
             --special-day-bg: #fff9c4;
             --notify-color: #fbc02d;
         }
-        body {
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-            color: var(--text-main);
-        }
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); }
         
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 20px 20px 15px 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-        }
+        header { background-color: var(--primary-color); color: white; padding: 20px 20px 15px 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
         h1 { margin: 0; font-size: 24px; }
         p.subtitle { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
         
         .progress-wrapper { margin-top: 15px; }
-        .progress-container {
-            background-color: rgba(255, 255, 255, 0.3);
-            height: 8px; border-radius: 4px; overflow: hidden; width: 100%;
-        }
-        .progress-bar {
-            background-color: #ffffff; height: 100%; width: 0%;
-            transition: width 0.4s ease; border-radius: 4px;
-        }
+        .progress-container { background-color: rgba(255, 255, 255, 0.3); height: 8px; border-radius: 4px; overflow: hidden; width: 100%; }
+        .progress-bar { background-color: #ffffff; height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 4px; }
         .progress-text { font-size: 13px; font-weight: bold; margin-top: 6px; display: block; }
 
-        .container { 
-            padding: 15px; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding-top: 150px; 
-            padding-bottom: 80px; 
-            overflow-x: hidden;
-        }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; padding-top: 150px; padding-bottom: 80px; overflow-x: hidden; }
         
         .category { margin-bottom: 25px; }
-        .category h2 {
-            font-size: 18px; color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 5px; margin-bottom: 15px;
-        }
-        .task-list {
-            background: var(--card-bg); border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;
-        }
+        .category h2 { font-size: 18px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; }
+        .task-list { background: var(--card-bg); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
         
-        .task-item {
-            display: flex; align-items: center; padding: 15px;
-            border-bottom: 1px solid #eeeeee; transition: background-color 0.2s;
-        }
+        .task-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eeeeee; transition: background-color 0.2s; }
         .task-item:last-child { border-bottom: none; }
         
-        .task-item-group {
-            display: flex; flex-direction: column; padding: 15px;
-            border-bottom: 1px solid #eeeeee; transition: background-color 0.2s;
-        }
+        .task-item-group { display: flex; flex-direction: column; padding: 15px; border-bottom: 1px solid #eeeeee; transition: background-color 0.2s; }
         .task-row { display: flex; align-items: center; width: 100%; transition: opacity 0.3s; }
-        .task-obs-input {
-            width: calc(100% - 39px); margin-left: 39px; margin-top: 10px; padding: 10px;
-            border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
-            background-color: #fafafa; font-family: inherit;
-        }
+        .task-obs-input { width: calc(100% - 39px); margin-left: 39px; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background-color: #fafafa; font-family: inherit; }
         .task-obs-input:focus { border-color: var(--primary-color); outline: none; background-color: #fff; }
 
         .completed { background-color: #e8f5e9; }
         .completed label { color: var(--text-muted); text-decoration: line-through; }
         
-        input[type="checkbox"] {
-            width: 24px; height: 24px; margin-right: 15px;
-            accent-color: var(--primary-color); cursor: pointer;
-            flex-shrink: 0;
-        }
+        input[type="checkbox"] { width: 24px; height: 24px; margin-right: 15px; accent-color: var(--primary-color); cursor: pointer; flex-shrink: 0; }
         label { flex-grow: 1; font-size: 15px; line-height: 1.4; cursor: pointer; }
 
-        .day-highlight {
-            background-color: var(--special-day-bg);
-            border: 1px dashed #fbc02d;
-            border-radius: 8px;
-        }
+        .day-highlight { background-color: var(--special-day-bg); border: 1px dashed #fbc02d; border-radius: 8px; }
 
-        .btn-weekly-toggle {
-            background-color: #e0e0e0; color: #333; border: none; border-radius: 8px;
-            padding: 15px; width: 100%; font-size: 16px; font-weight: bold;
-            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
+        .btn-weekly-toggle { background-color: #e0e0e0; color: #333; border: none; border-radius: 8px; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .weekly-content { display: none; margin-top: 15px; }
         .weekly-content.show { display: block; }
 
-        .obs-section {
-            background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px;
-            padding: 15px; margin-bottom: 15px;
-        }
+        .obs-section { background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
         .obs-section h2 { color: var(--obs-color); border-bottom: 2px solid var(--obs-color); margin-top: 0; font-size: 18px; }
 
-        .alert-section {
-            background-color: #fff8f8; border: 1px solid #ffcdd2; border-radius: 8px;
-            padding: 15px; margin-bottom: 25px;
-        }
+        .alert-section { background-color: #fff8f8; border: 1px solid #ffcdd2; border-radius: 8px; padding: 15px; margin-bottom: 25px; }
         .alert-section h2 { color: var(--alert-color); border-bottom: 2px solid var(--alert-color); margin-top: 0; font-size: 18px; }
         
-        textarea {
-            width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc;
-            border-radius: 6px; font-family: inherit; resize: vertical; font-size: 15px;
-        }
+        textarea { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; resize: vertical; font-size: 15px; }
         
         .buttons-container { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
-        .btn {
-            padding: 15px; border: none; border-radius: 8px; font-size: 16px;
-            font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            text-align: center; width: 100%; transition: opacity 0.2s;
-        }
+        .btn { padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-align: center; width: 100%; transition: opacity 0.2s; }
         .btn-submit { background-color: var(--whatsapp-color); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-notify { background-color: var(--notify-color); color: #333; }
         .btn-reset { background-color: #757575; color: white; }
 
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); z-index: 998;
-            opacity: 0; visibility: hidden; transition: all 0.3s ease;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 998; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
         .modal-overlay.show { opacity: 1; visibility: visible; }
-        .modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background-color: white; border-radius: 12px; padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 999;
-            width: 85%; max-width: 400px; text-align: center;
-            opacity: 0; visibility: hidden; scale: 0.8; transition: all 0.3s ease;
-        }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 999; width: 85%; max-width: 400px; text-align: center; opacity: 0; visibility: hidden; scale: 0.8; transition: all 0.3s ease; }
         .modal.show { opacity: 1; visibility: visible; scale: 1; }
         .modal-header { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: var(--primary-color); }
         .modal-body { font-size: 16px; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
@@ -198,7 +152,6 @@
         .modal-btn-ok { background-color: var(--primary-color); color: white; }
         .modal-btn-cancel { background-color: #e0e0e0; color: #333; }
         .modal-btn-confirm { background-color: var(--whatsapp-color); color: white; }
-
     </style>
 </head>
 <body>
@@ -411,7 +364,6 @@
         function fecharTodosModais() { overlay.classList.remove('show'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
         function abrirConfirmacao() { overlay.classList.add('show'); document.getElementById('modal-confirm').classList.add('show'); }
 
-        // FUNÇÃO PARA ATIVAR O ONESIGNAL (Ação do Clique)
         function ativarNotificacao() {
             OneSignalDeferred.push(function(OneSignal) {
                 OneSignal.Notifications.requestPermission().then(function(permission) {
@@ -427,7 +379,6 @@
         }
 
         function finalizarEEnviar() {
-            fecharTodosModais();
             let marcadasRoutine = document.querySelectorAll('.daily-task:checked').length;
             let totalRoutine = document.querySelectorAll('.daily-task').length;
             
@@ -436,7 +387,6 @@
                 if(!box.checked) tarefasPendentes.push(box.nextElementSibling.innerText);
             });
 
-            // Captura das observações apenas do Fechamento
             let obsCozinha = document.getElementById('obs-f1').value.trim();
             let obsSalao = document.getElementById('obs-f2').value.trim();
             
@@ -476,7 +426,13 @@
             text += `---------------------------------\n`;
             text += `_Enviado via App GP Tech_`;
 
-            window.location.href = `https://api.whatsapp.com/send?phone=${NUMERO_WHATSAPP}&text=${encodeURIComponent(text)}`;
+            // Chama a nova inteligência do Firebase! Se ela não carregar por algum motivo, vai no modo tradicional.
+            if (window.salvarNoBancoDaGPTech) {
+                window.salvarNoBancoDaGPTech(text, marcadasRoutine);
+            } else {
+                fecharTodosModais();
+                window.location.href = `https://api.whatsapp.com/send?phone=${NUMERO_WHATSAPP}&text=${encodeURIComponent(text)}`;
+            }
         }
 
         function abrirModalReset() { if(confirm("Deseja limpar tudo?")) {
