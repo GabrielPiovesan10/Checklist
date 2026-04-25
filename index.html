@@ -474,7 +474,7 @@
 
         function configurarInterfaceAtivada() {
             let btn = document.getElementById('btn-notify');
-            btn.innerText = "🔔 Lembrete Ativado (23:30)";
+            btn.innerText = "🔔 Lembrete Ativado (01:37)";
             btn.style.backgroundColor = "#e8f5e9";
             btn.disabled = true;
         }
@@ -499,7 +499,7 @@
 
         function checarHorarioFechamento() {
             let agora = new Date();
-            if (agora.getHours() === 01 && agora.getMinutes() === 33) {
+            if (agora.getHours() === 01 && agora.getMinutes() === 37) {
                 if (Notification.permission === "granted") {
                     new Notification("Seo Pacheco - Gerência", {
                         body: "Chefe, o turno tá acabando! Não esqueça de preencher o checklist de fechamento e enviar para a Aline.",
