@@ -150,8 +150,6 @@
         }
         .btn-submit { background-color: var(--whatsapp-color); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-reset { background-color: #757575; color: white; }
-        
-        /* NOVO BOTÃO DE NOTIFICAÇÃO */
         .btn-notify { background-color: #fbc02d; color: #333; }
 
         .modal-overlay {
@@ -313,7 +311,6 @@
                 ✓ Enviar Checklist
             </button>
             <button class="btn btn-notify" onclick="ativarNotificacao()" id="btn-notify">🔔 Ativar Lembrete Diário</button>
-            
             <button class="btn btn-reset" onclick="abrirModalReset()">Limpar Tudo</button>
         </div>
 
@@ -332,23 +329,42 @@
     <script>
         const NUMERO_WHATSAPP = "5519993405480"; 
         
-        // IDENTIFICAÇÃO DO DIA ATUAL
-        const diasSemana = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
-        const hoje = diasSemana[new Date().getDay()];
-        
-        if(document.getElementById('group-' + hoje)) {
-            document.getElementById('group-' + hoje).classList.add('day-highlight');
-        }
-
-        document.querySelectorAll('.conditional-task').forEach(box => {
-            let groupDay = box.closest('.task-item-group').dataset.day;
-            if(groupDay === hoje) {
-                box.classList.add('daily-task'); 
-            } else {
-                box.disabled = true; 
-                box.closest('.task-row').style.opacity = '0.4'; 
+        // ==========================================
+        // LÓGICA DE INICIALIZAÇÃO
+        // ==========================================
+        window.onload = function() {
+            const diasSemana = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+            const hoje = diasSemana[new Date().getDay()];
+            
+            // Destaca o dia atual
+            if(document.getElementById('group-' + hoje)) {
+                document.getElementById('group-' + hoje).classList.add('day-highlight');
             }
-        });
+
+            // Ativa apenas as tarefas do dia correto
+            document.querySelectorAll('.conditional-task').forEach(box => {
+                let groupDay = box.closest('.task-item-group').dataset.day;
+                if(groupDay === hoje) {
+                    box.classList.add('daily-task'); 
+                } else {
+                    box.disabled = true; 
+                    box.closest('.task-row').style.opacity = '0.4'; 
+                }
+            });
+
+            // Adiciona evento de clique a todos os checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+                box.addEventListener('change', function() {
+                    let container = this.closest('.task-item') || this.closest('.task-item-group') || this.closest('.task-row');
+                    if(this.checked) container.classList.add('completed');
+                    else container.classList.remove('completed');
+                    atualizarProgresso();
+                });
+            });
+
+            atualizarProgresso();
+            verificarLembreteSalvo();
+        };
 
         const overlay = document.getElementById('modal-overlay');
         const progressBar = document.getElementById('progress-bar');
@@ -375,22 +391,14 @@
             progressText.innerText = porcentagem + '% Concluído (Rotina)';
         }
 
-        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
-            box.addEventListener('change', function() {
-                let container = this.closest('.task-item') || this.closest('.task-item-group') || this.closest('.task-row');
-                if(this.checked) container.classList.add('completed');
-                else container.classList.remove('completed');
-                atualizarProgresso();
-            });
-        });
-
-        atualizarProgresso();
-
         function fecharTodosModais() { overlay.classList.remove('show'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
         function abrirConfirmacao() { overlay.classList.add('show'); document.getElementById('modal-confirm').classList.add('show'); }
 
         function finalizarEEnviar() {
             fecharTodosModais();
+            const diasSemana = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+            const hoje = diasSemana[new Date().getDay()];
+
             let marcadasRoutine = document.querySelectorAll('.daily-task:checked').length;
             let totalRoutine = document.querySelectorAll('.daily-task').length;
             
@@ -454,8 +462,23 @@
         }}
 
         // ==========================================
-        // NOVA LÓGICA DE NOTIFICAÇÃO (LEMBRETE DIÁRIO)
+        // LÓGICA DE NOTIFICAÇÃO COM MEMÓRIA (localStorage)
         // ==========================================
+        function verificarLembreteSalvo() {
+            const lembreteAtivo = localStorage.getItem('lembreteGerenciaAtivo');
+            if (lembreteAtivo === 'true' && Notification.permission === 'granted') {
+                configurarInterfaceAtivada();
+                setInterval(checarHorarioFechamento, 60000);
+            }
+        }
+
+        function configurarInterfaceAtivada() {
+            let btn = document.getElementById('btn-notify');
+            btn.innerText = "🔔 Lembrete Ativado (23:30)";
+            btn.style.backgroundColor = "#e8f5e9";
+            btn.disabled = true;
+        }
+
         function ativarNotificacao() {
             if (!("Notification" in window)) {
                 alert("Seu navegador não suporta notificações nativas.");
@@ -464,14 +487,9 @@
             
             Notification.requestPermission().then(function (permission) {
                 if (permission === "granted") {
-                    let btn = document.getElementById('btn-notify');
-                    btn.innerText = "🔔 Lembrete Ativado (23:30)";
-                    btn.style.backgroundColor = "#e8f5e9";
-                    btn.disabled = true;
-                    
-                    alert("Tudo certo! O sistema vai te avisar às 23:30 para enviar o fechamento.");
-                    
-                    // Checa o horário a cada 1 minuto (60000 ms)
+                    localStorage.setItem('lembreteGerenciaAtivo', 'true');
+                    configurarInterfaceAtivada();
+                    alert("Tudo certo! O lembrete agora é automático para as 23:30.");
                     setInterval(checarHorarioFechamento, 60000);
                 } else {
                     alert("Você negou a permissão. O lembrete não vai funcionar.");
@@ -481,7 +499,6 @@
 
         function checarHorarioFechamento() {
             let agora = new Date();
-            // Dispara exatamente quando for 23:30
             if (agora.getHours() === 23 && agora.getMinutes() === 30) {
                 if (Notification.permission === "granted") {
                     new Notification("Seo Pacheco - Gerência", {
