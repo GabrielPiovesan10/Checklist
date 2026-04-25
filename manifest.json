@@ -1,0 +1,8 @@
+{
+  "name": "Gerência Seo Pacheco",
+  "short_name": "Gerência",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#2e7d32"
+}
