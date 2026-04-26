@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Seo Pacheco - App Gerência</title>
 
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -48,11 +51,10 @@
       // Cria a função global para salvar no banco
       window.salvarNoBancoDaGPTech = async function(textoWhatsApp, marcadas) {
           const btn = document.querySelector('.modal-btn-confirm');
-          btn.innerText = "Salvando..."; // Dá um feedback visual legal pro usuário
+          btn.innerText = "Salvando..."; 
           btn.disabled = true;
 
           try {
-              // Salva os dados numa "gaveta" chamada 'historico_checklists'
               await addDoc(collection(db, "historico_checklists"), {
                   data_envio: new Date().toLocaleDateString('pt-BR'),
                   tarefas_concluidas: marcadas,
@@ -61,10 +63,8 @@
               console.log("Dados salvos na nuvem com sucesso!");
           } catch (e) {
               console.error("Erro ao salvar na nuvem:", e);
-              // Se der pau na internet e não salvar no Firebase, ele ignora e manda pro WhatsApp do mesmo jeito pra não prejudicar a operação!
           }
 
-          // Fecha o modal e abre o WhatsApp da Aline
           fecharTodosModais();
           window.location.href = `https://api.whatsapp.com/send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
           
@@ -307,7 +307,6 @@
     <script>
         const NUMERO_WHATSAPP = "5519993405480"; 
         
-        // IDENTIFICAÇÃO DO DIA ATUAL
         const diasSemana = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
         const hoje = diasSemana[new Date().getDay()];
         
@@ -426,7 +425,6 @@
             text += `---------------------------------\n`;
             text += `_Enviado via App GP Tech_`;
 
-            // Chama a nova inteligência do Firebase! Se ela não carregar por algum motivo, vai no modo tradicional.
             if (window.salvarNoBancoDaGPTech) {
                 window.salvarNoBancoDaGPTech(text, marcadasRoutine);
             } else {
