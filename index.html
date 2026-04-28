@@ -49,14 +49,12 @@
       const db = getFirestore(app);
 
       window.salvarNoBancoDaGPTech = function(textoWhatsApp, marcadas) {
-          // O Firebase salva no fundo (background) sem travar a tela
           addDoc(collection(db, "historico_checklists"), {
               data_envio: new Date().toLocaleDateString('pt-BR'),
               tarefas_concluidas: marcadas,
               horario_exato: serverTimestamp()
           }).catch(e => console.error("Erro ao salvar:", e));
           
-          // Libera o botão do WhatsApp imediatamente
           const linkWhatsApp = `whatsapp://send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
           
           const modalH = document.querySelector('#m-confirm .modal-h');
@@ -217,9 +215,9 @@
         <div class="category-title">7. Controle Semanal</div>
         <button class="btn-weekly-toggle" onclick="toggleWeekly()">Exibir Controle Semanal <span>▼</span></button>
         <div class="weekly-content" id="weekly-content">
-            <div class="task-card" id="card-t30" onclick="abrirDecisao('t30', 'Inventário completo')"><span class="task-label">Inventário completo</span><span class="status-badge" id="badge-t30">Pendente</span></div>
-            <div class="task-card" id="card-t31" onclick="abrirDecisao('t31', 'Vendas x Consumo')"><span class="task-label">Vendas x Consumo</span><span class="status-badge" id="badge-t31">Pendente</span></div>
-            <div class="task-card" id="card-t33" onclick="abrirDecisao('t33', 'Cotar produtos')"><span class="task-label">Cotar produtos</span><span class="status-badge" id="badge-t33">Pendente</span></div>
+            <div class="task-card extra-weekly" id="card-t30" onclick="abrirDecisao('t30', 'Inventário completo')"><span class="task-label">Inventário completo</span><span class="status-badge" id="badge-t30">Pendente</span></div>
+            <div class="task-card extra-weekly" id="card-t31" onclick="abrirDecisao('t31', 'Vendas x Consumo')"><span class="task-label">Vendas x Consumo</span><span class="status-badge" id="badge-t31">Pendente</span></div>
+            <div class="task-card extra-weekly" id="card-t33" onclick="abrirDecisao('t33', 'Cotar produtos')"><span class="task-label">Cotar produtos</span><span class="status-badge" id="badge-t33">Pendente</span></div>
         </div>
 
         <div class="obs-section">
@@ -314,9 +312,14 @@
         }
 
         function atualizarProgresso() {
-            const total = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"])').length;
-            const marcadas = Object.keys(tarefasStatus).filter(k => !k.startsWith('a')).length;
-            const pct = Math.round((marcadas/total)*100) || 0;
+            // Ignora os alertas e as tarefas semanais (.extra-weekly) do cálculo TOTAL da barra
+            const total = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"]):not(.extra-weekly)').length;
+            
+            // Ignora os alertas e as tarefas semanais na hora de contar o que foi FEITO
+            const semanaisExtras = ['t30', 't31', 't33'];
+            const marcadas = Object.keys(tarefasStatus).filter(k => !k.startsWith('a') && !semanaisExtras.includes(k)).length;
+            
+            const pct = total === 0 ? 0 : Math.round((marcadas/total)*100);
             document.getElementById('progress-bar').style.width = pct+'%';
             document.getElementById('progress-text').innerText = pct+'% CONCLUÍDO';
         }
@@ -382,18 +385,20 @@
             const json = await res.json(); return json.data.url;
         }
 
-        // --- NOVA LÓGICA DE WHATSAPP PROFISSIONAL ---
         function enviarZap(links) {
-            const totalTasks = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"])').length;
-            const tarefasFeitasCount = Object.keys(tarefasStatus).filter(k => tarefasStatus[k] === 'DONE' && !k.startsWith('a')).length;
+            // Recalcula o percentual apenas com base nas rotinas diárias para exibir no ZAP
+            const totalTasks = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"]):not(.extra-weekly)').length;
+            const semanaisExtras = ['t30', 't31', 't33'];
+            const tarefasFeitasCount = Object.keys(tarefasStatus).filter(k => tarefasStatus[k] === 'DONE' && !k.startsWith('a') && !semanaisExtras.includes(k)).length;
             const pct = totalTasks === 0 ? 0 : Math.round((tarefasFeitasCount / totalTasks) * 100);
 
             let msg = `*📋 RELATÓRIO DE FECHAMENTO - SEO PACHECO*\n`;
             msg += `🗓️ *Data:* ${new Date().toLocaleDateString('pt-BR')}\n`;
-            msg += `📊 *Desempenho Geral:* ${pct}% Concluído\n`;
+            msg += `📊 *Desempenho Diário:* ${pct}% Concluído\n`;
             msg += `---------------------------------\n\n`;
 
             let feitas = [];
+            let extrasFeitas = [];
             let erros = [];
             let pendentes = [];
 
@@ -401,17 +406,20 @@
                 const id = card.id.replace('card-','');
                 if(id.startsWith('a')) return; 
                 
-                if(['t30', 't31', 't33'].includes(id) && !tarefasStatus[id]) return;
+                const isExtra = ['t30', 't31', 't33'].includes(id);
+                if(isExtra && !tarefasStatus[id]) return;
 
                 const label = card.querySelector('.task-label').innerText;
                 const st = tarefasStatus[id];
 
-                if(st === 'DONE') feitas.push(label);
+                if(st === 'DONE') {
+                    if (isExtra) extrasFeitas.push(label);
+                    else feitas.push(label);
+                }
                 else if(st === 'ERROR') erros.push(label);
                 else pendentes.push(label);
             });
 
-            // BLOCO 1: O que falhou ou não foi feito
             if(erros.length > 0 || pendentes.length > 0) {
                 msg += `*🚨 ATENÇÃO NECESSÁRIA:*\n`;
                 erros.forEach(t => msg += `❌ ${t}\n`);
@@ -419,7 +427,6 @@
                 msg += `\n`;
             }
 
-            // BLOCO 2: Fotos e Obs de Fechamento
             const obsF1 = document.getElementById('obs-f1').value.trim();
             const obsF2 = document.getElementById('obs-f2').value.trim();
 
@@ -436,11 +443,9 @@
                 msg += `\n`;
             }
 
-            // BLOCO 3: Obs Geral
             const og = document.getElementById('obs-geral').value.trim(); 
             if(og) msg += `*📝 OBSERVAÇÕES GERAIS:*\n_${og}_\n\n`;
 
-            // BLOCO 4: Alertas Críticos
             const alertas = Object.keys(tarefasStatus).filter(k => k.startsWith('a'));
             if(alertas.length > 0) {
                 msg += `*⚠️ OCORRÊNCIAS REGISTRADAS:*\n`;
@@ -450,10 +455,15 @@
                 msg += `\n`;
             }
 
-            // BLOCO 5: Tarefas Ok (Lista compacta no final)
             if(feitas.length > 0) {
                 msg += `*✅ TAREFAS CONCLUÍDAS (${feitas.length}):*\n`;
                 feitas.forEach(t => msg += `✔️ ${t}\n`);
+                msg += `\n`;
+            }
+
+            if(extrasFeitas.length > 0) {
+                msg += `*🌟 EXTRAS (SEMANAL):*\n`;
+                extrasFeitas.forEach(t => msg += `✔️ ${t}\n`);
                 msg += `\n`;
             }
 
