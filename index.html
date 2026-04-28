@@ -57,7 +57,6 @@
               });
           } catch (e) { console.error("Erro ao salvar:", e); }
           
-          // O SEGREDO: Cria um link real para o app do Zap e libera o botão físico
           const linkWhatsApp = `whatsapp://send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
           
           const modalH = document.querySelector('#m-confirm .modal-h');
@@ -65,11 +64,12 @@
           
           if(modalH) modalH.innerText = "✅ Tudo Salvo!";
           
+          // O SEGREDO DO RESET AUTOMÁTICO ESTÁ AQUI NO "onclick" DA TAG <a>
           modalBtns.innerHTML = `
-              <a href="${linkWhatsApp}" style="text-decoration: none; width: 100%; display: block; margin-bottom: 10px;">
+              <a href="${linkWhatsApp}" onclick="setTimeout(() => window.location.reload(), 2000)" style="text-decoration: none; width: 100%; display: block; margin-bottom: 10px;">
                   <button class="m-btn m-done" style="width: 100%; font-size: 16px;">📲 ABRIR WHATSAPP</button>
               </a>
-              <button class="m-btn m-cancel" onclick="location.reload()">Limpar Checklist</button>
+              <button class="m-btn m-cancel" onclick="window.location.reload()">Novo Checklist</button>
           `;
       };
     </script>
@@ -344,6 +344,10 @@
             document.querySelectorAll('.task-card:not(.disabled)').forEach(card => {
                 const id = card.id.replace('card-','');
                 if(id.startsWith('a')) return; 
+                
+                // O SEGREDO 1: Pula as tarefas da semana se não foram respondidas
+                if(['t30', 't31', 't33'].includes(id) && !tarefasStatus[id]) return;
+
                 const label = card.querySelector('.task-label').innerText;
                 const st = tarefasStatus[id] === 'DONE' ? '✅ FEITO' : (tarefasStatus[id] === 'ERROR' ? '❌ NÃO FEITO' : '⏳ PENDENTE');
                 msg += `*${label}:* ${st}\n`;
