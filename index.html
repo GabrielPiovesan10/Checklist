@@ -65,8 +65,8 @@
           }
 
           fecharTodosModais();
-          // TROCADO AQUI PARA WA.ME PARA ABRIR DIRETO
-          window.location.href = `https://wa.me/5519993405480?text=${encodeURIComponent(textoWhatsApp)}`;
+          // MUDANÇA AQUI: Protocolo whatsapp:// para abrir direto o app
+          window.location.href = `whatsapp://send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
           
           btn.innerText = "Sim, Enviar";
           btn.disabled = false;
@@ -472,8 +472,8 @@
                 window.salvarNoBancoDaGPTech(text, marcadasRoutine);
             } else {
                 fecharTodosModais();
-                // TROCADO AQUI PARA WA.ME PARA ABRIR DIRETO
-                window.location.href = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(text)}`;
+                // MUDANÇA AQUI: Protocolo whatsapp:// para abrir direto o app
+                window.location.href = `whatsapp://send?phone=${NUMERO_WHATSAPP}&text=${encodeURIComponent(text)}`;
             }
         }
 
