@@ -488,7 +488,7 @@
             const tarefasFeitasCount = Object.keys(tarefasStatus).filter(k => tarefasStatus[k] === 'DONE' && !k.startsWith('a') && !semanaisExtras.includes(k)).length;
             const pct = totalTasks === 0 ? 0 : Math.round((tarefasFeitasCount / totalTasks) * 100);
 
-            let msg = `*📋 RELATÓRIO DE FECHAMENTO - SEO PACHECO*\n`;
+            let msg = `*📋 RELATÓRIO DO DIA - SEO PACHECO*\n`;
             msg += `🗓️ *Data:* ${new Date().toLocaleDateString('pt-BR')}\n`;
             msg += `📊 *Desempenho Diário:* ${pct}% Concluído\n`;
             msg += `---------------------------------\n\n`;
