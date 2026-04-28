@@ -48,23 +48,22 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      window.salvarNoBancoDaGPTech = async function(textoWhatsApp, marcadas) {
-          try {
-              await addDoc(collection(db, "historico_checklists"), {
-                  data_envio: new Date().toLocaleDateString('pt-BR'),
-                  tarefas_concluidas: marcadas,
-                  horario_exato: serverTimestamp()
-              });
-          } catch (e) { console.error("Erro ao salvar:", e); }
+      window.salvarNoBancoDaGPTech = function(textoWhatsApp, marcadas) {
+          // O Firebase salva no fundo (background) sem travar a tela
+          addDoc(collection(db, "historico_checklists"), {
+              data_envio: new Date().toLocaleDateString('pt-BR'),
+              tarefas_concluidas: marcadas,
+              horario_exato: serverTimestamp()
+          }).catch(e => console.error("Erro ao salvar:", e));
           
+          // Libera o botão do WhatsApp imediatamente
           const linkWhatsApp = `whatsapp://send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
           
           const modalH = document.querySelector('#m-confirm .modal-h');
           const modalBtns = document.querySelector('#m-confirm .modal-btns');
           
-          if(modalH) modalH.innerText = "✅ Tudo Salvo!";
+          if(modalH) modalH.innerText = "✅ Tudo Pronto!";
           
-          // O SEGREDO DO RESET AUTOMÁTICO ESTÁ AQUI NO "onclick" DA TAG <a>
           modalBtns.innerHTML = `
               <a href="${linkWhatsApp}" onclick="setTimeout(() => window.location.reload(), 2000)" style="text-decoration: none; width: 100%; display: block; margin-bottom: 10px;">
                   <button class="m-btn m-done" style="width: 100%; font-size: 16px;">📲 ABRIR WHATSAPP</button>
@@ -78,11 +77,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; color: #1e293b; }
         
-        header { 
-            background: #2e7d32; color: white; padding: 25px 20px 30px 20px; text-align: center; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; 
-            border-radius: 0 0 25px 25px; 
-        }
+        header { background: #2e7d32; color: white; padding: 25px 20px 30px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; border-radius: 0 0 25px 25px; }
         header h1 { margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase; }
         header p { margin: 5px 0 0 0; font-size: 11px; font-weight: 700; opacity: 0.7; letter-spacing: 2px; }
         
@@ -95,12 +90,7 @@
         
         .category-title { font-size: 13px; font-weight: 900; color: #2e7d32; text-transform: uppercase; letter-spacing: 1.5px; margin: 25px 0 12px 5px; }
 
-        .task-card { 
-            background: #ffffff; border-radius: 18px; padding: 18px; margin-bottom: 10px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-left: 6px solid #e2e8f0;
-            transition: all 0.2s ease; cursor: pointer;
-        }
+        .task-card { background: #ffffff; border-radius: 18px; padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-left: 6px solid #e2e8f0; transition: all 0.2s ease; cursor: pointer; }
         .task-card:active { transform: scale(0.97); }
         .task-card.status-done { border-left-color: #22c55e; background-color: #f0fdf4; }
         .task-card.status-error { border-left-color: #ef4444; background-color: #fef2f2; }
@@ -239,10 +229,10 @@
 
         <div class="alert-section">
             <h2 style="font-size: 14px; font-weight: 900; color: #d32f2f; text-transform: uppercase;">⚠️ Alertas e Ocorrências</h2>
-            <div class="task-card" id="card-a1" onclick="abrirDecisao('a1', 'Estoque não bate')"><span class="task-label">Estoque não bate</span><span class="status-badge" id="badge-a1">Pendente</span></div>
-            <div class="task-card" id="card-a2" onclick="abrirDecisao('a2', 'Falta de produtos')"><span class="task-label">Falta de produtos</span><span class="status-badge" id="badge-a2">Pendente</span></div>
-            <div class="task-card" id="card-a4" onclick="abrirDecisao('a4', 'Diferença de caixa')"><span class="task-label">Diferença de caixa</span><span class="status-badge" id="badge-a4">Pendente</span></div>
-            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas..."></textarea>
+            <div class="task-card" id="card-a1" onclick="toggleAlerta('a1')"><span class="task-label">Estoque não bate</span><span class="status-badge" id="badge-a1">Pendente</span></div>
+            <div class="task-card" id="card-a2" onclick="toggleAlerta('a2')"><span class="task-label">Falta de produtos</span><span class="status-badge" id="badge-a2">Pendente</span></div>
+            <div class="task-card" id="card-a4" onclick="toggleAlerta('a4')"><span class="task-label">Diferença de caixa</span><span class="status-badge" id="badge-a4">Pendente</span></div>
+            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas..." style="width:100%; padding:12px; border-radius:12px; border:1px solid #ccc; font-family:inherit;"></textarea>
         </div>
 
         <button class="btn-main btn-submit" onclick="abrirConfirmacao()">✓ Enviar para WhatsApp</button>
@@ -279,6 +269,23 @@
         document.querySelectorAll('.conditional').forEach(c => {
             if(c.closest('.task-item-group').dataset.day !== hoje) c.classList.add('disabled');
         });
+
+        // FUNÇÃO DE TOGGLE DIRETO PARA OS ALERTAS
+        function toggleAlerta(id) {
+            const card = document.getElementById('card-'+id);
+            const badge = document.getElementById('badge-'+id);
+            if (tarefasStatus[id]) {
+                delete tarefasStatus[id];
+                card.classList.remove('status-error');
+                badge.innerText = "Pendente";
+                badge.className = "status-badge";
+            } else {
+                tarefasStatus[id] = 'ERROR';
+                card.classList.add('status-error');
+                badge.innerText = "⚠️ ATIVO";
+                badge.className = "status-badge error";
+            }
+        }
 
         function abrirDecisao(id, titulo) {
             idAtual = id;
@@ -321,15 +328,29 @@
 
         async function processarEnvio() {
             const btn = document.getElementById('btn-envio');
-            btn.innerText = "⏳ Processando..."; btn.disabled = true;
+            btn.innerText = "⏳ Preparando..."; btn.disabled = true;
             let links = { f1: "", f2: "" };
+            
             try {
                 const img1 = document.getElementById('foto-f1').files[0];
                 const img2 = document.getElementById('foto-f2').files[0];
-                if(img1) links.f1 = await upload(img1);
-                if(img2) links.f2 = await upload(img2);
+                
+                // UPLOAD SIMULTÂNEO (Muito mais rápido)
+                if(img1 || img2) {
+                    btn.innerText = "📸 Subindo fotos...";
+                    const [url1, url2] = await Promise.all([
+                        img1 ? upload(img1) : Promise.resolve(""),
+                        img2 ? upload(img2) : Promise.resolve("")
+                    ]);
+                    links.f1 = url1; links.f2 = url2;
+                }
+                
                 enviarZap(links);
-            } catch(e) { alert("Erro nas fotos."); btn.disabled = false; btn.innerText = "Sim, Enviar"; }
+            } catch(e) { 
+                alert("Erro ao subir as fotos. Tente novamente."); 
+                btn.disabled = false; 
+                btn.innerText = "Sim, Enviar"; 
+            }
         }
 
         async function upload(file) {
@@ -345,7 +366,7 @@
                 const id = card.id.replace('card-','');
                 if(id.startsWith('a')) return; 
                 
-                // O SEGREDO 1: Pula as tarefas da semana se não foram respondidas
+                // Ignora tarefas semanais se não tiverem sido clicadas
                 if(['t30', 't31', 't33'].includes(id) && !tarefasStatus[id]) return;
 
                 const label = card.querySelector('.task-label').innerText;
