@@ -270,7 +270,6 @@
             if(c.closest('.task-item-group').dataset.day !== hoje) c.classList.add('disabled');
         });
 
-        // Toggle Direto dos Alertas
         function toggleAlerta(id) {
             const card = document.getElementById('card-'+id);
             const badge = document.getElementById('badge-'+id);
@@ -326,7 +325,6 @@
         function toggleWeekly() { document.getElementById('weekly-content').classList.toggle('show'); }
         function abrirConfirmacao() { document.getElementById('overlay').classList.add('show'); document.getElementById('m-confirm').classList.add('show'); }
 
-        // COMPRESSOR DE IMAGENS EMBUTIDO (Velocidade máxima no upload)
         function comprimir(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -336,13 +334,13 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800; // Reduz a imagem para tamanho rápido
+                        const MAX_WIDTH = 800;
                         const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
                         canvas.width = img.width * scale;
                         canvas.height = img.height * scale;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.6); // Compressão em 60%
+                        canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.6);
                     };
                 };
             });
@@ -384,35 +382,83 @@
             const json = await res.json(); return json.data.url;
         }
 
+        // --- NOVA LÓGICA DE WHATSAPP PROFISSIONAL ---
         function enviarZap(links) {
-            let msg = `*📋 RELATÓRIO PREMIUM - SEO PACHECO*\n🗓️ Data: ${new Date().toLocaleDateString('pt-BR')}\n---------------------------------\n\n`;
-            
+            const totalTasks = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"])').length;
+            const tarefasFeitasCount = Object.keys(tarefasStatus).filter(k => tarefasStatus[k] === 'DONE' && !k.startsWith('a')).length;
+            const pct = totalTasks === 0 ? 0 : Math.round((tarefasFeitasCount / totalTasks) * 100);
+
+            let msg = `*📋 RELATÓRIO DE FECHAMENTO - SEO PACHECO*\n`;
+            msg += `🗓️ *Data:* ${new Date().toLocaleDateString('pt-BR')}\n`;
+            msg += `📊 *Desempenho Geral:* ${pct}% Concluído\n`;
+            msg += `---------------------------------\n\n`;
+
+            let feitas = [];
+            let erros = [];
+            let pendentes = [];
+
             document.querySelectorAll('.task-card:not(.disabled)').forEach(card => {
                 const id = card.id.replace('card-','');
                 if(id.startsWith('a')) return; 
                 
-                // Ignora semanais não tocadas
                 if(['t30', 't31', 't33'].includes(id) && !tarefasStatus[id]) return;
 
                 const label = card.querySelector('.task-label').innerText;
-                const st = tarefasStatus[id] === 'DONE' ? '✅ FEITO' : (tarefasStatus[id] === 'ERROR' ? '❌ NÃO FEITO' : '⏳ PENDENTE');
-                msg += `*${label}:* ${st}\n`;
-                if(id === 'f1') { const o = document.getElementById('obs-f1').value; if(o) msg += `_Obs: ${o}_\n`; if(links.f1) msg += `📸 Foto: ${links.f1}\n`; }
-                if(id === 'f2') { const o = document.getElementById('obs-f2').value; if(o) msg += `_Obs: ${o}_\n`; if(links.f2) msg += `📸 Foto: ${links.f2}\n`; }
+                const st = tarefasStatus[id];
+
+                if(st === 'DONE') feitas.push(label);
+                else if(st === 'ERROR') erros.push(label);
+                else pendentes.push(label);
             });
 
-            const og = document.getElementById('obs-geral').value; 
-            if(og) msg += `\n*📝 OBS GERAIS:* ${og}\n`;
-
-            const alertas = Object.keys(tarefasStatus).filter(k => k.startsWith('a'));
-            if(alertas.length > 0) {
-                msg += `\n*⚠️ ALERTAS DETECTADOS:* \n`;
-                alertas.forEach(id => { msg += `- ${document.getElementById('card-'+id).querySelector('.task-label').innerText}\n`; });
-                const det = document.getElementById('detalhes-alertas').value;
-                if(det) msg += `_Detalhes:_ ${det}\n`;
+            // BLOCO 1: O que falhou ou não foi feito
+            if(erros.length > 0 || pendentes.length > 0) {
+                msg += `*🚨 ATENÇÃO NECESSÁRIA:*\n`;
+                erros.forEach(t => msg += `❌ ${t}\n`);
+                pendentes.forEach(t => msg += `⏳ ${t} (Pendente)\n`);
+                msg += `\n`;
             }
 
-            msg += `\n---------------------------------\n_Tecnologia GP Tech Solutions_`;
+            // BLOCO 2: Fotos e Obs de Fechamento
+            const obsF1 = document.getElementById('obs-f1').value.trim();
+            const obsF2 = document.getElementById('obs-f2').value.trim();
+
+            if(obsF1 || links.f1 || obsF2 || links.f2) {
+                msg += `*📸 REGISTROS DE FECHAMENTO:*\n`;
+                if(obsF1 || links.f1) {
+                    msg += `*🍳 Cozinha:* ${obsF1 ? obsF1 : 'Sem observações'}\n`;
+                    if(links.f1) msg += `🔗 Link da Foto: ${links.f1}\n`;
+                }
+                if(obsF2 || links.f2) {
+                    msg += `*🪑 Salão:* ${obsF2 ? obsF2 : 'Sem observações'}\n`;
+                    if(links.f2) msg += `🔗 Link da Foto: ${links.f2}\n`;
+                }
+                msg += `\n`;
+            }
+
+            // BLOCO 3: Obs Geral
+            const og = document.getElementById('obs-geral').value.trim(); 
+            if(og) msg += `*📝 OBSERVAÇÕES GERAIS:*\n_${og}_\n\n`;
+
+            // BLOCO 4: Alertas Críticos
+            const alertas = Object.keys(tarefasStatus).filter(k => k.startsWith('a'));
+            if(alertas.length > 0) {
+                msg += `*⚠️ OCORRÊNCIAS REGISTRADAS:*\n`;
+                alertas.forEach(id => { msg += `- ${document.getElementById('card-'+id).querySelector('.task-label').innerText}\n`; });
+                const det = document.getElementById('detalhes-alertas').value.trim();
+                if(det) msg += `_Detalhes: ${det}_\n`;
+                msg += `\n`;
+            }
+
+            // BLOCO 5: Tarefas Ok (Lista compacta no final)
+            if(feitas.length > 0) {
+                msg += `*✅ TAREFAS CONCLUÍDAS (${feitas.length}):*\n`;
+                feitas.forEach(t => msg += `✔️ ${t}\n`);
+                msg += `\n`;
+            }
+
+            msg += `---------------------------------\n_🚀 Sistema desenvolvido por GP Tech Solutions_`;
+            
             if(window.salvarNoBancoDaGPTech) window.salvarNoBancoDaGPTech(msg, Object.keys(tarefasStatus).length);
         }
 
