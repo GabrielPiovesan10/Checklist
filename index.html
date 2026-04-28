@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>Checklist - Gerência</title>
+    <title>Checklist Premium - Gerência</title>
 
     <meta name="apple-mobile-web-app-title" content="Checklist Gerência">
-
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -24,9 +23,9 @@
         if (OneSignal.Notifications.permission === true) {
             const btn = document.getElementById('btn-notify');
             if(btn) {
-                btn.innerText = "🔔 Notificações Ativadas";
-                btn.style.backgroundColor = "#e8f5e9";
-                btn.style.color = "#757575"; 
+                btn.innerText = "🔔 Lembrete Ativo";
+                btn.style.background = "#e2e8f0";
+                btn.style.color = "#94a3b8"; 
                 btn.disabled = true;
             }
         }
@@ -50,431 +49,321 @@
       const db = getFirestore(app);
 
       window.salvarNoBancoDaGPTech = async function(textoWhatsApp, marcadas) {
-          const btn = document.querySelector('.modal-btn-confirm');
-          btn.innerText = "Salvando..."; 
-          btn.disabled = true;
-
           try {
               await addDoc(collection(db, "historico_checklists"), {
                   data_envio: new Date().toLocaleDateString('pt-BR'),
                   tarefas_concluidas: marcadas,
                   horario_exato: serverTimestamp()
               });
-          } catch (e) {
-              console.error("Erro ao salvar:", e);
-          }
-
-          fecharTodosModais();
-          // MUDANÇA AQUI: Protocolo whatsapp:// para abrir direto o app
-          window.location.href = `whatsapp://send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
+          } catch (e) { console.error("Erro ao salvar:", e); }
           
-          btn.innerText = "Sim, Enviar";
-          btn.disabled = false;
+          // O SEGREDO: Cria um link real para o app do Zap e libera o botão físico
+          const linkWhatsApp = `whatsapp://send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
+          
+          const modalH = document.querySelector('#m-confirm .modal-h');
+          const modalBtns = document.querySelector('#m-confirm .modal-btns');
+          
+          if(modalH) modalH.innerText = "✅ Tudo Salvo!";
+          
+          modalBtns.innerHTML = `
+              <a href="${linkWhatsApp}" style="text-decoration: none; width: 100%; display: block; margin-bottom: 10px;">
+                  <button class="m-btn m-done" style="width: 100%; font-size: 16px;">📲 ABRIR WHATSAPP</button>
+              </a>
+              <button class="m-btn m-cancel" onclick="location.reload()">Limpar Checklist</button>
+          `;
       };
     </script>
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; overscroll-behavior-y: none; }
-
-        :root {
-            --primary-color: #2e7d32;
-            --bg-color: #f5f5f5;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #757575;
-            --alert-color: #d32f2f;
-            --whatsapp-color: #25D366;
-            --obs-color: #0277bd;
-            --special-day-bg: #fff9c4;
-            --notify-color: #fbc02d;
-        }
-        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; color: #1e293b; }
         
-        header { background-color: var(--primary-color); color: white; padding: 20px 20px 15px 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
-        h1 { margin: 0; font-size: 24px; }
-        p.subtitle { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+        header { 
+            background: #2e7d32; color: white; padding: 25px 20px 30px 20px; text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; 
+            border-radius: 0 0 25px 25px; 
+        }
+        header h1 { margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase; }
+        header p { margin: 5px 0 0 0; font-size: 11px; font-weight: 700; opacity: 0.7; letter-spacing: 2px; }
         
         .progress-wrapper { margin-top: 15px; }
-        .progress-container { background-color: rgba(255, 255, 255, 0.3); height: 8px; border-radius: 4px; overflow: hidden; width: 100%; }
-        .progress-bar { background-color: #ffffff; height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 4px; }
-        .progress-text { font-size: 13px; font-weight: bold; margin-top: 6px; display: block; }
+        .progress-container { background: rgba(255,255,255,0.2); height: 8px; border-radius: 10px; overflow: hidden; }
+        .progress-bar { background: #ffffff; height: 100%; width: 0%; transition: width 0.6s ease; }
+        .progress-text { font-size: 10px; font-weight: 900; margin-top: 8px; display: block; text-transform: uppercase; }
 
-        .container { padding: 15px; max-width: 600px; margin: 0 auto; padding-top: 150px; padding-bottom: 80px; overflow-x: hidden; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; padding-top: 150px; padding-bottom: 100px; }
         
-        .category { margin-bottom: 25px; }
-        .category h2 { font-size: 18px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; }
-        .task-list { background: var(--card-bg); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
-        .task-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eeeeee; transition: background-color 0.2s; }
-        .task-item-group { display: flex; flex-direction: column; padding: 15px; border-bottom: 1px solid #eeeeee; transition: background-color 0.2s; }
-        .task-row { display: flex; align-items: center; width: 100%; transition: opacity 0.3s; }
+        .category-title { font-size: 13px; font-weight: 900; color: #2e7d32; text-transform: uppercase; letter-spacing: 1.5px; margin: 25px 0 12px 5px; }
+
+        .task-card { 
+            background: #ffffff; border-radius: 18px; padding: 18px; margin-bottom: 10px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-left: 6px solid #e2e8f0;
+            transition: all 0.2s ease; cursor: pointer;
+        }
+        .task-card:active { transform: scale(0.97); }
+        .task-card.status-done { border-left-color: #22c55e; background-color: #f0fdf4; }
+        .task-card.status-error { border-left-color: #ef4444; background-color: #fef2f2; }
+        .task-card.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+        .task-label { font-size: 14px; font-weight: 700; color: #334155; }
+        .status-badge { font-size: 9px; font-weight: 900; padding: 5px 10px; border-radius: 10px; background: #f1f5f9; color: #94a3b8; text-transform: uppercase; }
+        .status-badge.done { background: #dcfce7; color: #166534; }
+        .status-badge.error { background: #fee2e2; color: #991b1b; }
+
+        .task-item-group { margin-bottom: 20px; padding: 15px; border-radius: 20px; }
+        .day-label { font-weight: 900; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .day-highlight { background-color: #fff9c4; border: 2px dashed #fbc02d; border-radius: 25px; }
+
+        .camera-obs-block { width: 100%; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); }
+        .camera-row { display: flex; gap: 10px; align-items: center; }
+        .task-obs-input { flex: 1; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 14px; outline: none; }
+        .btn-camera { background: #f1f5f9; border: 1.5px solid #e2e8f0; width: 50px; height: 48px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .btn-camera.has-photo { background: #dcfce7; border-color: #22c55e; }
+
+        .obs-section, .alert-section { border-radius: 20px; padding: 15px; margin-bottom: 20px; }
+        .obs-section { background-color: #e3f2fd; }
+        .alert-section { background-color: #fff8f8; border: 1px solid #ffcdd2; }
+        .alert-section h2 { color: #d32f2f; font-size: 14px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; }
         
-        .camera-obs-row { 
-            display: flex; 
-            gap: 10px; 
-            margin-top: 10px; 
-            margin-left: 39px; 
-            margin-right: 15px;
-            align-items: center; 
-            justify-content: space-between;
-        }
-        .task-obs-input { 
-            flex: 1; 
-            padding: 12px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            background-color: #fafafa; 
-            min-width: 0; 
-        }
-        .btn-camera { 
-            background: #f0f0f0; 
-            border: 1px solid #ccc; 
-            width: 50px; 
-            height: 45px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            flex-shrink: 0; 
-            font-size: 20px;
-        }
-        .btn-camera.has-photo { background: #e8f5e9; border-color: #2e7d32; }
-
-        .hidden-input { display: none !important; }
-
-        .completed { background-color: #e8f5e9; }
-        .completed label { color: var(--text-muted); text-decoration: line-through; }
-        
-        input[type="checkbox"] { width: 24px; height: 24px; margin-right: 15px; accent-color: var(--primary-color); cursor: pointer; flex-shrink: 0; }
-        label { flex-grow: 1; font-size: 15px; line-height: 1.4; cursor: pointer; }
-
-        .day-highlight { background-color: var(--special-day-bg); border: 1px dashed #fbc02d; border-radius: 8px; }
-
-        .btn-weekly-toggle { background-color: #e0e0e0; color: #333; border: none; border-radius: 8px; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .weekly-content { display: none; margin-top: 15px; }
+        .btn-main { padding: 20px; border: none; border-radius: 20px; font-size: 16px; font-weight: 900; cursor: pointer; text-transform: uppercase; width: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-submit { background-color: #25D366; color: white; margin-top: 20px; }
+        .btn-weekly-toggle { background: white; color: #334155; border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+        .weekly-content { display: none; margin-top: 10px; }
         .weekly-content.show { display: block; }
 
-        .obs-section { background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .obs-section h2 { color: var(--obs-color); border-bottom: 2px solid var(--obs-color); margin-top: 0; font-size: 18px; }
-
-        .alert-section { background-color: #fff8f8; border: 1px solid #ffcdd2; border-radius: 8px; padding: 15px; margin-bottom: 25px; }
-        .alert-section h2 { color: var(--alert-color); border-bottom: 2px solid var(--alert-color); margin-top: 0; font-size: 18px; }
-        
-        textarea { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; resize: vertical; font-size: 15px; }
-        
-        .buttons-container { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
-        .btn { padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-align: center; width: 100%; transition: opacity 0.2s; }
-        .btn-submit { background-color: var(--whatsapp-color); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-notify { background-color: var(--notify-color); color: #333; }
-        .btn-reset { background-color: #757575; color: white; }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 998; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.show { opacity: 1; visibility: visible; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 999; width: 85%; max-width: 400px; text-align: center; opacity: 0; visibility: hidden; scale: 0.8; transition: all 0.3s ease; }
-        .modal.show { opacity: 1; visibility: visible; scale: 1; }
-        .modal-footer { display: flex; justify-content: space-around; gap: 10px; }
-        .modal-btn { padding: 12px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; flex-grow: 1; }
-        .modal-btn-confirm { background-color: var(--whatsapp-color); color: white; }
-        .modal-btn-cancel { background-color: #e0e0e0; color: #333; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: white; border-radius: 30px; padding: 35px; width: 85%; max-width: 400px; text-align: center; z-index: 2001; opacity: 0; visibility: hidden; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal.show { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+        .m-btn { padding: 18px; border: none; border-radius: 18px; font-size: 14px; font-weight: 900; text-transform: uppercase; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        .m-done { background: #22c55e; color: white; }
+        .m-error { background: #ef4444; color: white; }
+        .m-cancel { background: #f1f5f9; color: #94a3b8; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Checklist | Gerência</h1>
-        <p class="subtitle">Seo Pacheco</p>
+        <h1>Checklist Gerência</h1>
+        <p>SEO PACHECO</p>
         <div class="progress-wrapper">
             <div class="progress-container">
-                <div class="progress-bar" id="progress-bar"></div>
+                <div id="progress-bar" class="progress-bar"></div>
             </div>
-            <span class="progress-text" id="progress-text">0% Concluído (Rotina)</span>
+            <span id="progress-text" class="progress-text">0% Concluído</span>
         </div>
     </header>
 
     <div class="container">
         
-        <div class="category">
-            <h2>1. Abertura (Manhã)</h2>
-            <div class="task-list">
-                <div class="task-item"><input type="checkbox" id="t1" class="daily-task"><label for="t1">Limpeza geral</label></div>
-                <div class="task-item"><input type="checkbox" id="t2" class="daily-task"><label for="t2">Equipe uniformizada</label></div>
-                <div class="task-item"><input type="checkbox" id="t4" class="daily-task"><label for="t4">Mise en place pronto</label></div>
-                <div class="task-item"><input type="checkbox" id="t5" class="daily-task"><label for="t5">Equipamentos funcionando</label></div>
-                <div class="task-item"><input type="checkbox" id="t6" class="daily-task"><label for="t6">Alinhamento com equipe</label></div>
-                <div class="task-item"><input type="checkbox" id="t7" class="daily-task"><label for="t7">Cobrar horário de almoço (10:15hs)</label></div>
-            </div>
+        <div class="category-title">1. Abertura (Manhã)</div>
+        <div class="task-card" id="card-t1" onclick="abrirDecisao('t1', 'Limpeza geral')"><span class="task-label">Limpeza geral</span><span class="status-badge" id="badge-t1">Pendente</span></div>
+        <div class="task-card" id="card-t2" onclick="abrirDecisao('t2', 'Equipe uniformizada')"><span class="task-label">Equipe uniformizada</span><span class="status-badge" id="badge-t2">Pendente</span></div>
+        <div class="task-card" id="card-t4" onclick="abrirDecisao('t4', 'Mise en place pronto')"><span class="task-label">Mise en place pronto</span><span class="status-badge" id="badge-t4">Pendente</span></div>
+        <div class="task-card" id="card-t5" onclick="abrirDecisao('t5', 'Equipamentos funcionando')"><span class="task-label">Equipamentos funcionando</span><span class="status-badge" id="badge-t5">Pendente</span></div>
+        <div class="task-card" id="card-t6" onclick="abrirDecisao('t6', 'Alinhamento com equipe')"><span class="task-label">Alinhamento com equipe</span><span class="status-badge" id="badge-t6">Pendente</span></div>
+        <div class="task-card" id="card-t7" onclick="abrirDecisao('t7', 'Horário de almoço (10:15hs)')"><span class="task-label">Horário de almoço (10:15hs)</span><span class="status-badge" id="badge-t7">Pendente</span></div>
+
+        <div class="category-title">2. Durante o Funcionamento</div>
+        <div class="task-card" id="card-t8" onclick="abrirDecisao('t8', 'Controlar tempo dos pedidos')"><span class="task-label">Controlar tempo dos pedidos</span><span class="status-badge" id="badge-t8">Pendente</span></div>
+        <div class="task-card" id="card-t9" onclick="abrirDecisao('t9', 'Garantir bom atendimento')"><span class="task-label">Garantir bom atendimento</span><span class="status-badge" id="badge-t9">Pendente</span></div>
+        <div class="task-card" id="card-t10" onclick="abrirDecisao('t10', 'Passar nas mesas')"><span class="task-label">Passar nas mesas</span><span class="status-badge" id="badge-t10">Pendente</span></div>
+        <div class="task-card" id="card-t11" onclick="abrirDecisao('t11', 'Resolver problemas')"><span class="task-label">Resolver problemas</span><span class="status-badge" id="badge-t11">Pendente</span></div>
+
+        <div class="category-title">3. Controle de Caixa</div>
+        <div class="task-card" id="card-t15" onclick="abrirDecisao('t15', 'Bater caixa')"><span class="task-label">Bater caixa</span><span class="status-badge" id="badge-t15">Pendente</span></div>
+
+        <div class="category-title">4. Estoque e Compras</div>
+        <div class="task-card" id="card-t23a" onclick="abrirDecisao('t23a', 'Pedido de VERDURAS')"><span class="task-label">Pedido de VERDURAS</span><span class="status-badge" id="badge-t23a">Pendente</span></div>
+        <div class="task-card" id="card-t20" onclick="abrirDecisao('t20', 'Controlar perdas')"><span class="task-label">Controlar perdas</span><span class="status-badge" id="badge-t20">Pendente</span></div>
+
+        <div class="category-title">📅 Tarefas da Semana</div>
+        <div class="task-item-group" id="group-quarta" data-day="quarta">
+            <div class="day-label" style="color: #d32f2f;">📍 QUARTA-FEIRA</div>
+            <div class="task-card conditional" id="card-q1" onclick="abrirDecisao('q1', 'Lista de mercado')"><span class="task-label">Lista de mercado</span><span class="status-badge" id="badge-q1">Pendente</span></div>
+            <div class="task-card conditional" id="card-q2" onclick="abrirDecisao('q2', 'Trocar valor cardápio')"><span class="task-label">Trocar valor cardápio</span><span class="status-badge" id="badge-q2">Pendente</span></div>
+            <div class="task-card conditional" id="card-q3" onclick="abrirDecisao('q3', 'Estoque (CARNES)')"><span class="task-label">Estoque (CARNES)</span><span class="status-badge" id="badge-q3">Pendente</span></div>
+            <div class="task-card conditional" id="card-q4" onclick="abrirDecisao('q4', 'Pedido Ambev/Coca')"><span class="task-label">Pedido Ambev/Coca</span><span class="status-badge" id="badge-q4">Pendente</span></div>
+        </div>
+        <div class="task-item-group" id="group-quinta" data-day="quinta">
+            <div class="day-label" style="color: #1976d2;">📍 QUINTA-FEIRA</div>
+            <div class="task-card conditional" id="card-qui1" onclick="abrirDecisao('qui1', 'Estoque BEBIDAS')"><span class="task-label">Estoque BEBIDAS</span><span class="status-badge" id="badge-qui1">Pendente</span></div>
+            <div class="task-card conditional" id="card-qui2" onclick="abrirDecisao('qui2', 'Escala funcionários')"><span class="task-label">Escala funcionários</span><span class="status-badge" id="badge-qui2">Pendente</span></div>
+        </div>
+        <div class="task-item-group" id="group-sexta" data-day="sexta">
+            <div class="day-label" style="color: #388e3c;">📍 SEXTA-FEIRA</div>
+            <div class="task-card conditional" id="card-sex1" onclick="abrirDecisao('sex1', 'Troca cardápio')"><span class="task-label">Troca cardápio</span><span class="status-badge" id="badge-sex1">Pendente</span></div>
         </div>
 
-        <div class="category">
-            <h2>2. Durante o Funcionamento</h2>
-            <div class="task-list">
-                <div class="task-item"><input type="checkbox" id="t8" class="daily-task"><label for="t8">Controlar tempo dos pedidos</label></div>
-                <div class="task-item"><input type="checkbox" id="t9" class="daily-task"><label for="t9">Garantir bom atendimento</label></div>
-                <div class="task-item"><input type="checkbox" id="t10" class="daily-task"><label for="t10">Passar nas mesas</label></div>
-                <div class="task-item"><input type="checkbox" id="t11" class="daily-task"><label for="t11">Resolver problemas e imprevistos</label></div>
+        <div class="category-title">6. Fechamento</div>
+        <div class="task-card" id="card-f1" style="flex-direction: column; align-items: stretch;">
+            <div style="display:flex; justify-content:space-between; align-items:center;" onclick="abrirDecisao('f1', 'Checklist Cozinha')">
+                <span class="task-label">Checklist Cozinha</span><span class="status-badge" id="badge-f1">Pendente</span>
             </div>
-        </div>
-
-        <div class="category">
-            <h2>3. Controle de Caixa</h2>
-            <div class="task-list">
-                <div class="task-item"><input type="checkbox" id="t15" class="daily-task"><label for="t15">Bater caixa</label></div>
-            </div>
-        </div>
-
-        <div class="category">
-            <h2>4. Estoque e Compras (Diário)</h2>
-            <div class="task-list">
-                <div class="task-item"><input type="checkbox" id="t23a" class="daily-task"><label for="t23a">Fazer pedido de VERDURAS</label></div>
-                <div class="task-item"><input type="checkbox" id="t20" class="daily-task"><label for="t20">Controlar perdas e desperdícios</label></div>
-            </div>
-        </div>
-
-        <div class="category">
-            <h2>📅 5. Tarefas da Semana</h2>
-            <div class="task-list">
-                <div class="task-item-group" id="group-quarta" data-day="quarta">
-                    <div style="font-weight: bold; color: #d32f2f; margin-bottom: 5px;">📍 QUARTA-FEIRA</div>
-                    <div class="task-row"><input type="checkbox" id="q1" class="conditional-task"><label for="q1">Fazer lista de mercado</label></div>
-                    <div class="task-row"><input type="checkbox" id="q2" class="conditional-task"><label for="q2">Trocar valor do cardápio</label></div>
-                    <div class="task-row"><input type="checkbox" id="q3" class="conditional-task"><label for="q3">Estoque conferido (CARNES)</label></div>
-                    <div class="task-row"><input type="checkbox" id="q4" class="conditional-task"><label for="q4">Fazer pedido Ambev/Coca</label></div>
-                </div>
-                <div class="task-item-group" id="group-quinta" data-day="quinta">
-                    <div style="font-weight: bold; color: #1976d2; margin-bottom: 5px; margin-top: 10px;">📍 QUINTA-FEIRA</div>
-                    <div class="task-row"><input type="checkbox" id="qui1" class="conditional-task"><label for="qui1">Verificar estoque de BEBIDAS</label></div>
-                    <div class="task-row"><input type="checkbox" id="qui2" class="conditional-task"><label for="qui2">Escala de funcionários</label></div>
-                </div>
-                <div class="task-item-group" id="group-sexta" data-day="sexta">
-                    <div style="font-weight: bold; color: #388e3c; margin-bottom: 5px; margin-top: 10px;">📍 SEXTA-FEIRA</div>
-                    <div class="task-row"><input type="checkbox" id="sex1" class="conditional-task"><label for="sex1">Troca do cardápio</label></div>
+            <div class="camera-obs-block">
+                <div class="camera-row">
+                    <input type="text" id="obs-f1" class="task-obs-input" placeholder="Obs cozinha...">
+                    <label for="foto-f1" class="btn-camera" id="label-f1">📸<input type="file" accept="image/*" capture="environment" id="foto-f1" style="display:none" onchange="fotoOk(this)"></label>
                 </div>
             </div>
         </div>
-
-        <div class="category">
-            <h2>6. Fechamento</h2>
-            <div class="task-list">
-                <div class="task-item-group">
-                    <div class="task-row">
-                        <input type="checkbox" id="f1" class="daily-task"><label for="f1">Verificar checklist da COZINHA</label>
-                    </div>
-                    <div class="camera-obs-row">
-                        <input type="text" id="obs-f1" class="task-obs-input" placeholder="Situação da Cozinha">
-                        <label for="foto-f1" class="btn-camera" id="label-foto-f1">
-                            📸 <input type="file" accept="image/*" capture="environment" id="foto-f1" class="hidden-input camera-input">
-                        </label>
-                    </div>
+        <div class="task-card" id="card-f2" style="flex-direction: column; align-items: stretch;">
+            <div style="display:flex; justify-content:space-between; align-items:center;" onclick="abrirDecisao('f2', 'Checklist Salão')">
+                <span class="task-label">Checklist Salão</span><span class="status-badge" id="badge-f2">Pendente</span>
+            </div>
+            <div class="camera-obs-block">
+                <div class="camera-row">
+                    <input type="text" id="obs-f2" class="task-obs-input" placeholder="Obs salão...">
+                    <label for="foto-f2" class="btn-camera" id="label-f2">📸<input type="file" accept="image/*" capture="environment" id="foto-f2" style="display:none" onchange="fotoOk(this)"></label>
                 </div>
-                <div class="task-item-group">
-                    <div class="task-row">
-                        <input type="checkbox" id="f2" class="daily-task"><label for="f2">Verificar checklist do SALÃO</label>
-                    </div>
-                    <div class="camera-obs-row">
-                        <input type="text" id="obs-f2" class="task-obs-input" placeholder="Situação do Salão">
-                        <label for="foto-f2" class="btn-camera" id="label-foto-f2">
-                            📸 <input type="file" accept="image/*" capture="environment" id="foto-f2" class="hidden-input camera-input">
-                        </label>
-                    </div>
-                </div>
-                <div class="task-item"><input type="checkbox" id="t24" class="daily-task"><label for="t24">Limpeza final e Armazenamento correto</label></div>
-                <div class="task-item"><input type="checkbox" id="t25" class="daily-task"><label for="t25">Desligar equipamentos</label></div>
-                <div class="task-item"><input type="checkbox" id="t26" class="daily-task"><label for="t26">Verificar Gás e Água (fechados)</label></div>
-                <div class="task-item"><input type="checkbox" id="t27" class="daily-task"><label for="t27">Travamento: Portas, Freezers e Acessos</label></div>
             </div>
         </div>
+        <div class="task-card" id="card-t24" onclick="abrirDecisao('t24', 'Limpeza final')"><span class="task-label">Limpeza final</span><span class="status-badge" id="badge-t24">Pendente</span></div>
+        <div class="task-card" id="card-t25" onclick="abrirDecisao('t25', 'Desligar equipamentos')"><span class="task-label">Desligar equipamentos</span><span class="status-badge" id="badge-t25">Pendente</span></div>
+        <div class="task-card" id="card-t26" onclick="abrirDecisao('t26', 'Gás e Água (fechados)')"><span class="task-label">Gás e Água (fechados)</span><span class="status-badge" id="badge-t26">Pendente</span></div>
+        <div class="task-card" id="card-t27" onclick="abrirDecisao('t27', 'Travamento total')"><span class="task-label">Travamento total</span><span class="status-badge" id="badge-t27">Pendente</span></div>
 
-        <div class="category">
-            <button class="btn-weekly-toggle" onclick="toggleWeekly()" id="btn-weekly">
-                📅 7. Controle Semanal <span>▼</span>
-            </button>
-            <div class="weekly-content" id="weekly-content">
-                <div class="task-list">
-                    <div class="task-item"><input type="checkbox" id="t30" class="weekly-task"><label for="t30">Inventário completo</label></div>
-                    <div class="task-item"><input type="checkbox" id="t31" class="weekly-task"><label for="t31">Comparar vendas x consumo</label></div>
-                    <div class="task-item"><input type="checkbox" id="t33" class="weekly-task"><label for="t33">Cotar produtos para compra</label></div>
-                </div>
-            </div>
+        <div class="category-title">7. Controle Semanal</div>
+        <button class="btn-weekly-toggle" onclick="toggleWeekly()">Exibir Controle Semanal <span>▼</span></button>
+        <div class="weekly-content" id="weekly-content">
+            <div class="task-card" id="card-t30" onclick="abrirDecisao('t30', 'Inventário completo')"><span class="task-label">Inventário completo</span><span class="status-badge" id="badge-t30">Pendente</span></div>
+            <div class="task-card" id="card-t31" onclick="abrirDecisao('t31', 'Vendas x Consumo')"><span class="task-label">Vendas x Consumo</span><span class="status-badge" id="badge-t31">Pendente</span></div>
+            <div class="task-card" id="card-t33" onclick="abrirDecisao('t33', 'Cotar produtos')"><span class="task-label">Cotar produtos</span><span class="status-badge" id="badge-t33">Pendente</span></div>
         </div>
 
         <div class="obs-section">
-            <h2>📝 Observações Gerais do Dia</h2>
-            <textarea id="obs-geral" rows="4" placeholder="Outras observações gerais..."></textarea>
+            <h2 style="font-size: 14px; font-weight: 900; color: #0277bd; text-transform: uppercase;">📝 Observações Gerais</h2>
+            <textarea id="obs-geral" rows="4" style="width:100%; border-radius:15px; border:1px solid #bbdefb; padding:12px; outline:none;"></textarea>
         </div>
 
         <div class="alert-section">
-            <h2>⚠️ Alertas e Ocorrências</h2>
-            <div class="task-list">
-                <div class="task-item"><input type="checkbox" id="a1"><label for="a1">Estoque não bate</label></div>
-                <div class="task-item"><input type="checkbox" id="a2"><label for="a2">Falta de produtos</label></div>
-                <div class="task-item"><input type="checkbox" id="a4"><label for="a4">Diferença de caixa</label></div>
-            </div>
-            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas detectados..."></textarea>
+            <h2 style="font-size: 14px; font-weight: 900; color: #d32f2f; text-transform: uppercase;">⚠️ Alertas e Ocorrências</h2>
+            <div class="task-card" id="card-a1" onclick="abrirDecisao('a1', 'Estoque não bate')"><span class="task-label">Estoque não bate</span><span class="status-badge" id="badge-a1">Pendente</span></div>
+            <div class="task-card" id="card-a2" onclick="abrirDecisao('a2', 'Falta de produtos')"><span class="task-label">Falta de produtos</span><span class="status-badge" id="badge-a2">Pendente</span></div>
+            <div class="task-card" id="card-a4" onclick="abrirDecisao('a4', 'Diferença de caixa')"><span class="task-label">Diferença de caixa</span><span class="status-badge" id="badge-a4">Pendente</span></div>
+            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas..."></textarea>
         </div>
 
-        <div class="buttons-container">
-            <button class="btn btn-submit" onclick="abrirConfirmacao()">✓ Enviar para WhatsApp</button>
-            <button class="btn btn-notify" onclick="ativarNotificacao()" id="btn-notify">🔔 Ativar Lembrete Diário</button>
-            <button class="btn btn-reset" onclick="abrirModalReset()">Limpar Tudo</button>
-        </div>
+        <button class="btn-main btn-submit" onclick="abrirConfirmacao()">✓ Enviar para WhatsApp</button>
+        <button class="btn-main" id="btn-notify" style="background:#fbc02d; color:#1e293b; margin-top:10px;" onclick="ativarNotificacao()">🔔 Ativar Lembrete</button>
+        <button class="btn-main" style="background:#64748b; color:white; margin-top:10px; font-size:12px;" onclick="location.reload()">Limpar Tudo</button>
     </div>
 
-    <div id="modal-overlay" class="modal-overlay" onclick="fecharTodosModais()"></div>
-    <div id="modal-confirm" class="modal">
-        <div class="modal-header">🚀 Confirmar Envio?</div>
-        <div class="modal-body" id="modal-body-text">Deseja enviar o checklist finalizado para o WhatsApp?</div>
-        <div class="modal-footer">
-            <button class="modal-btn modal-btn-cancel" onclick="fecharTodosModais()">Cancelar</button>
-            <button class="modal-btn modal-btn-confirm" onclick="iniciarProcessoDeEnvio()">Sim, Enviar</button>
+    <div id="overlay" class="modal-overlay" onclick="fecharModais()"></div>
+    <div id="m-decisao" class="modal">
+        <div class="modal-h" id="m-titulo">Tarefa</div>
+        <div class="modal-btns">
+            <button class="m-btn m-done" onclick="setStatus('DONE')">Concluído ✅</button>
+            <button class="m-btn m-error" onclick="setStatus('ERROR')">Não Realizado ❌</button>
+            <button class="m-btn m-cancel" onclick="fecharModais()">Voltar</button>
+        </div>
+    </div>
+    
+    <div id="m-confirm" class="modal">
+        <div class="modal-h">🚀 Enviar Agora?</div>
+        <div class="modal-btns">
+            <button class="m-btn m-done" id="btn-envio" onclick="processarEnvio()">Sim, Enviar</button>
+            <button class="m-btn m-cancel" onclick="fecharModais()">Revisar</button>
         </div>
     </div>
 
     <script>
-        const NUMERO_WHATSAPP = "5519993405480"; 
         const IMGBB_KEY = "7a4821a0efd21d3a37b8307704231fec";
-        
-        const diasSemana = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
-        const hoje = diasSemana[new Date().getDay()];
-        
-        if(document.getElementById('group-' + hoje)) {
-            document.getElementById('group-' + hoje).classList.add('day-highlight');
+        let tarefasStatus = {};
+        let idAtual = "";
+
+        const dias = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+        const hoje = dias[new Date().getDay()];
+        if(document.getElementById('group-'+hoje)) document.getElementById('group-'+hoje).classList.add('day-highlight');
+        document.querySelectorAll('.conditional').forEach(c => {
+            if(c.closest('.task-item-group').dataset.day !== hoje) c.classList.add('disabled');
+        });
+
+        function abrirDecisao(id, titulo) {
+            idAtual = id;
+            document.getElementById('m-titulo').innerText = titulo;
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('m-decisao').classList.add('show');
         }
 
-        document.querySelectorAll('.conditional-task').forEach(box => {
-            let groupDay = box.closest('.task-item-group').dataset.day;
-            if(groupDay === hoje) box.classList.add('daily-task'); 
-            else { box.disabled = true; box.closest('.task-row').style.opacity = '0.4'; }
-        });
+        function fecharModais() {
+            document.getElementById('overlay').classList.remove('show');
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+        }
 
-        document.querySelectorAll('.camera-input').forEach(input => {
-            input.addEventListener('change', function() {
-                if(this.files.length > 0) this.parentElement.classList.add('has-photo');
-            });
-        });
-
-        const overlay = document.getElementById('modal-overlay');
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
-
-        function toggleWeekly() {
-            const content = document.getElementById('weekly-content');
-            const btn = document.getElementById('btn-weekly');
-            content.classList.toggle('show');
-            btn.innerHTML = content.classList.contains('show') ? '📅 7. Controle Semanal <span>▲</span>' : '📅 7. Controle Semanal <span>▼</span>';
+        function setStatus(status) {
+            tarefasStatus[idAtual] = status;
+            const card = document.getElementById('card-'+idAtual);
+            const badge = document.getElementById('badge-'+idAtual);
+            card.classList.remove('status-done', 'status-error');
+            if(status === 'DONE') {
+                card.classList.add('status-done');
+                badge.innerText = "Feito ✅"; badge.className = "status-badge done";
+            } else {
+                card.classList.add('status-error');
+                badge.innerText = "Erro ❌"; badge.className = "status-badge error";
+            }
+            fecharModais(); atualizarProgresso();
         }
 
         function atualizarProgresso() {
-            let checkboxesRotina = document.querySelectorAll('.daily-task');
-            let marcadas = document.querySelectorAll('.daily-task:checked').length;
-            let porcentagem = Math.round((marcadas / checkboxesRotina.length) * 100);
-            progressBar.style.width = porcentagem + '%';
-            progressText.innerText = porcentagem + '% Concluído (Rotina)';
+            const total = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"])').length;
+            const marcadas = Object.keys(tarefasStatus).filter(k => !k.startsWith('a')).length;
+            const pct = Math.round((marcadas/total)*100) || 0;
+            document.getElementById('progress-bar').style.width = pct+'%';
+            document.getElementById('progress-text').innerText = pct+'% CONCLUÍDO';
         }
 
-        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
-            box.addEventListener('change', function() {
-                let container = this.closest('.task-item') || this.closest('.task-item-group') || this.closest('.task-row');
-                if(this.checked) container.classList.add('completed');
-                else container.classList.remove('completed');
-                atualizarProgresso();
-            });
-        });
+        function fotoOk(input) { if(input.files.length > 0) input.parentElement.classList.add('has-photo'); }
+        function toggleWeekly() { document.getElementById('weekly-content').classList.toggle('show'); }
+        function abrirConfirmacao() { document.getElementById('overlay').classList.add('show'); document.getElementById('m-confirm').classList.add('show'); }
 
-        function fecharTodosModais() { overlay.classList.remove('show'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); }
-        function abrirConfirmacao() { overlay.classList.add('show'); document.getElementById('modal-confirm').classList.add('show'); }
-
-        async function uploadParaImgBB(file) {
-            const formData = new FormData();
-            formData.append('image', file);
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: formData });
-            const result = await response.json();
-            return result.data.url;
-        }
-
-        async function iniciarProcessoDeEnvio() {
-            const btnConfirm = document.querySelector('.modal-btn-confirm');
-            const modalBody = document.getElementById('modal-body-text');
-            btnConfirm.disabled = true;
-            btnConfirm.innerText = "Subindo fotos...";
-            modalBody.innerText = "Aguarde o upload das fotos...";
-
-            let linkCozinha = "";
-            let linkSalao = "";
-
+        async function processarEnvio() {
+            const btn = document.getElementById('btn-envio');
+            btn.innerText = "⏳ Processando..."; btn.disabled = true;
+            let links = { f1: "", f2: "" };
             try {
-                const f1 = document.getElementById('foto-f1').files[0];
-                const f2 = document.getElementById('foto-f2').files[0];
-                if(f1) linkCozinha = await uploadParaImgBB(f1);
-                if(f2) linkSalao = await uploadParaImgBB(f2);
-                finalizarEEnviar(linkCozinha, linkSalao);
-            } catch (e) {
-                alert("Erro ao subir fotos.");
-                btnConfirm.disabled = false;
-                btnConfirm.innerText = "Sim, Enviar";
-            }
+                const img1 = document.getElementById('foto-f1').files[0];
+                const img2 = document.getElementById('foto-f2').files[0];
+                if(img1) links.f1 = await upload(img1);
+                if(img2) links.f2 = await upload(img2);
+                enviarZap(links);
+            } catch(e) { alert("Erro nas fotos."); btn.disabled = false; btn.innerText = "Sim, Enviar"; }
         }
 
-        function finalizarEEnviar(linkCozinha, linkSalao) {
-            let marcadasRoutine = document.querySelectorAll('.daily-task:checked').length;
-            let totalRoutine = document.querySelectorAll('.daily-task').length;
+        async function upload(file) {
+            const fd = new FormData(); fd.append('image', file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {method:'POST', body:fd});
+            const json = await res.json(); return json.data.url;
+        }
+
+        function enviarZap(links) {
+            let msg = `*📋 RELATÓRIO PREMIUM - SEO PACHECO*\n🗓️ Data: ${new Date().toLocaleDateString('pt-BR')}\n---------------------------------\n\n`;
             
-            let tarefasPendentes = [];
-            document.querySelectorAll('.daily-task').forEach(box => {
-                if(!box.checked) tarefasPendentes.push(box.nextElementSibling.innerText);
+            document.querySelectorAll('.task-card:not(.disabled)').forEach(card => {
+                const id = card.id.replace('card-','');
+                if(id.startsWith('a')) return; 
+                const label = card.querySelector('.task-label').innerText;
+                const st = tarefasStatus[id] === 'DONE' ? '✅ FEITO' : (tarefasStatus[id] === 'ERROR' ? '❌ NÃO FEITO' : '⏳ PENDENTE');
+                msg += `*${label}:* ${st}\n`;
+                if(id === 'f1') { const o = document.getElementById('obs-f1').value; if(o) msg += `_Obs: ${o}_\n`; if(links.f1) msg += `📸 Foto: ${links.f1}\n`; }
+                if(id === 'f2') { const o = document.getElementById('obs-f2').value; if(o) msg += `_Obs: ${o}_\n`; if(links.f2) msg += `📸 Foto: ${links.f2}\n`; }
             });
 
-            let obsCozinha = document.getElementById('obs-f1').value.trim();
-            let obsSalao = document.getElementById('obs-f2').value.trim();
-            let textoObsGeral = document.getElementById('obs-geral').value.trim();
-            let alertasMarcados = document.querySelectorAll('.alert-section input[type="checkbox"]:checked');
-            let textoAlertas = document.getElementById('detalhes-alertas').value.trim();
+            const og = document.getElementById('obs-geral').value; 
+            if(og) msg += `\n*📝 OBS GERAIS:* ${og}\n`;
 
-            let text = `*📋 CHECKLIST GERÊNCIA - SEO PACHECO*\n`;
-            text += `🗓️ Data: ${new Date().toLocaleDateString('pt-BR')} (${hoje.toUpperCase()})\n`;
-            text += `---------------------------------\n\n`;
-            text += `*📊 RESUMO:* ${marcadasRoutine} de ${totalRoutine} concluídas.\n\n`;
-
-            if (tarefasPendentes.length > 0) {
-                text += `*❌ PENDÊNCIAS:* \n`;
-                tarefasPendentes.forEach(t => text += `- ${t}\n`);
-                text += `\n`;
+            const alertas = Object.keys(tarefasStatus).filter(k => k.startsWith('a'));
+            if(alertas.length > 0) {
+                msg += `\n*⚠️ ALERTAS DETECTADOS:* \n`;
+                alertas.forEach(id => { msg += `- ${document.getElementById('card-'+id).querySelector('.task-label').innerText}\n`; });
+                const det = document.getElementById('detalhes-alertas').value;
+                if(det) msg += `_Detalhes:_ ${det}\n`;
             }
 
-            if (obsCozinha !== "" || linkCozinha !== "") {
-                text += `*🍳 COZINHA (FECHAMENTO):* \n`;
-                if(obsCozinha) text += `- Obs: ${obsCozinha}\n`;
-                if(linkCozinha) text += `- Foto: ${linkCozinha}\n`;
-                text += `\n`;
-            }
-
-            if (obsSalao !== "" || linkSalao !== "") {
-                text += `*🪑 SALÃO (FECHAMENTO):* \n`;
-                if(obsSalao) text += `- Obs: ${obsSalao}\n`;
-                if(linkSalao) text += `- Foto: ${linkSalao}\n`;
-                text += `\n`;
-            }
-
-            if (textoObsGeral !== "") text += `*📝 OBSERVAÇÕES GERAIS:* \n${textoObsGeral}\n\n`;
-
-            if (alertasMarcados.length > 0) {
-                text += `*⚠️ ALERTAS:* \n`;
-                alertasMarcados.forEach(a => text += `- ${a.nextElementSibling.innerText}\n`);
-                if(textoAlertas !== "") text += `_Detalhes:_ ${textoAlertas}\n`;
-                text += `\n`;
-            }
-
-            text += `---------------------------------\n`;
-            text += `_Enviado via App GP Tech_`;
-
-            if (window.salvarNoBancoDaGPTech) {
-                window.salvarNoBancoDaGPTech(text, marcadasRoutine);
-            } else {
-                fecharTodosModais();
-                // MUDANÇA AQUI: Protocolo whatsapp:// para abrir direto o app
-                window.location.href = `whatsapp://send?phone=${NUMERO_WHATSAPP}&text=${encodeURIComponent(text)}`;
-            }
+            msg += `\n---------------------------------\n_Tecnologia GP Tech Solutions_`;
+            if(window.salvarNoBancoDaGPTech) window.salvarNoBancoDaGPTech(msg, Object.keys(tarefasStatus).length);
         }
 
         function ativarNotificacao() {
@@ -482,19 +371,6 @@
                 OneSignal.Notifications.requestPermission();
             });
         }
-
-        function abrirModalReset() { if(confirm("Deseja limpar tudo?")) {
-            document.querySelectorAll('input[type="checkbox"]').forEach(box => { 
-                box.checked = false; 
-                let c = box.closest('.task-item') || box.closest('.task-item-group') || box.closest('.task-row');
-                if(c) c.classList.remove('completed'); 
-            });
-            document.querySelectorAll('input[type="text"], textarea').forEach(i => i.value = '');
-            document.querySelectorAll('.btn-camera').forEach(b => b.classList.remove('has-photo'));
-            atualizarProgresso();
-        }}
-
-        atualizarProgresso();
     </script>
 </body>
 </html>
