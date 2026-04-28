@@ -232,7 +232,7 @@
             <div class="task-card" id="card-a1" onclick="toggleAlerta('a1')"><span class="task-label">Estoque não bate</span><span class="status-badge" id="badge-a1">Pendente</span></div>
             <div class="task-card" id="card-a2" onclick="toggleAlerta('a2')"><span class="task-label">Falta de produtos</span><span class="status-badge" id="badge-a2">Pendente</span></div>
             <div class="task-card" id="card-a4" onclick="toggleAlerta('a4')"><span class="task-label">Diferença de caixa</span><span class="status-badge" id="badge-a4">Pendente</span></div>
-            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas..." style="width:100%; padding:12px; border-radius:12px; border:1px solid #ccc; font-family:inherit;"></textarea>
+            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas..." style="width:100%; padding:12px; border-radius:12px; border:1px solid #ccc; font-family:inherit; mt-10"></textarea>
         </div>
 
         <button class="btn-main btn-submit" onclick="abrirConfirmacao()">✓ Enviar para WhatsApp</button>
@@ -270,7 +270,7 @@
             if(c.closest('.task-item-group').dataset.day !== hoje) c.classList.add('disabled');
         });
 
-        // FUNÇÃO DE TOGGLE DIRETO PARA OS ALERTAS
+        // Toggle Direto dos Alertas
         function toggleAlerta(id) {
             const card = document.getElementById('card-'+id);
             const badge = document.getElementById('badge-'+id);
@@ -326,18 +326,43 @@
         function toggleWeekly() { document.getElementById('weekly-content').classList.toggle('show'); }
         function abrirConfirmacao() { document.getElementById('overlay').classList.add('show'); document.getElementById('m-confirm').classList.add('show'); }
 
+        // COMPRESSOR DE IMAGENS EMBUTIDO (Velocidade máxima no upload)
+        function comprimir(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; // Reduz a imagem para tamanho rápido
+                        const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob(blob => resolve(new File([blob], file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.6); // Compressão em 60%
+                    };
+                };
+            });
+        }
+
         async function processarEnvio() {
             const btn = document.getElementById('btn-envio');
             btn.innerText = "⏳ Preparando..."; btn.disabled = true;
             let links = { f1: "", f2: "" };
             
             try {
-                const img1 = document.getElementById('foto-f1').files[0];
-                const img2 = document.getElementById('foto-f2').files[0];
+                let img1 = document.getElementById('foto-f1').files[0];
+                let img2 = document.getElementById('foto-f2').files[0];
                 
-                // UPLOAD SIMULTÂNEO (Muito mais rápido)
                 if(img1 || img2) {
-                    btn.innerText = "📸 Subindo fotos...";
+                    btn.innerText = "⚡ Comprimindo fotos...";
+                    if(img1) img1 = await comprimir(img1);
+                    if(img2) img2 = await comprimir(img2);
+
+                    btn.innerText = "🚀 Subindo super rápido...";
                     const [url1, url2] = await Promise.all([
                         img1 ? upload(img1) : Promise.resolve(""),
                         img2 ? upload(img2) : Promise.resolve("")
@@ -366,7 +391,7 @@
                 const id = card.id.replace('card-','');
                 if(id.startsWith('a')) return; 
                 
-                // Ignora tarefas semanais se não tiverem sido clicadas
+                // Ignora semanais não tocadas
                 if(['t30', 't31', 't33'].includes(id) && !tarefasStatus[id]) return;
 
                 const label = card.querySelector('.task-label').innerText;
