@@ -62,12 +62,11 @@
           
           if(modalH) modalH.innerText = "✅ Tudo Pronto!";
           
-          // Alterado para usar a nova função de resetar e apagar a memória local
           modalBtns.innerHTML = `
-              <a href="${linkWhatsApp}" onclick="setTimeout(() => resetarChecklist(), 2000)" style="text-decoration: none; width: 100%; display: block; margin-bottom: 10px;">
+              <a href="${linkWhatsApp}" onclick="localStorage.removeItem('gptech_checklist'); setTimeout(() => window.location.reload(), 2000)" style="text-decoration: none; width: 100%; display: block; margin-bottom: 10px;">
                   <button class="m-btn m-done" style="width: 100%; font-size: 16px;">📲 ABRIR WHATSAPP</button>
               </a>
-              <button class="m-btn m-cancel" onclick="resetarChecklist()">Novo Checklist</button>
+              <button class="m-btn m-cancel" onclick="limparTudo()">Novo Checklist</button>
           `;
       };
     </script>
@@ -192,8 +191,8 @@
             </div>
             <div class="camera-obs-block">
                 <div class="camera-row">
-                    <input type="text" id="obs-f1" class="task-obs-input" placeholder="Obs cozinha..." oninput="salvarEstadoLocal()">
-                    <label for="foto-f1" class="btn-camera" id="label-f1">📸<input type="file" accept="image/*" capture="environment" id="foto-f1" style="display:none" onchange="fotoOk(this)"></label>
+                    <input type="text" id="obs-f1" class="task-obs-input" placeholder="Obs cozinha..." oninput="salvarEstado()">
+                    <label for="foto-f1" class="btn-camera" id="label-f1">📸<input type="file" accept="image/*" id="foto-f1" style="display:none" onchange="fotoOk(this)"></label>
                 </div>
             </div>
         </div>
@@ -203,8 +202,8 @@
             </div>
             <div class="camera-obs-block">
                 <div class="camera-row">
-                    <input type="text" id="obs-f2" class="task-obs-input" placeholder="Obs salão..." oninput="salvarEstadoLocal()">
-                    <label for="foto-f2" class="btn-camera" id="label-f2">📸<input type="file" accept="image/*" capture="environment" id="foto-f2" style="display:none" onchange="fotoOk(this)"></label>
+                    <input type="text" id="obs-f2" class="task-obs-input" placeholder="Obs salão..." oninput="salvarEstado()">
+                    <label for="foto-f2" class="btn-camera" id="label-f2">📸<input type="file" accept="image/*" id="foto-f2" style="display:none" onchange="fotoOk(this)"></label>
                 </div>
             </div>
         </div>
@@ -223,7 +222,7 @@
 
         <div class="obs-section">
             <h2 style="font-size: 14px; font-weight: 900; color: #0277bd; text-transform: uppercase;">📝 Observações Gerais</h2>
-            <textarea id="obs-geral" rows="4" style="width:100%; border-radius:15px; border:1px solid #bbdefb; padding:12px; outline:none;" oninput="salvarEstadoLocal()"></textarea>
+            <textarea id="obs-geral" rows="4" style="width:100%; border-radius:15px; border:1px solid #bbdefb; padding:12px; outline:none;" oninput="salvarEstado()"></textarea>
         </div>
 
         <div class="alert-section">
@@ -231,12 +230,12 @@
             <div class="task-card" id="card-a1" onclick="toggleAlerta('a1')"><span class="task-label">Estoque não bate</span><span class="status-badge" id="badge-a1">Pendente</span></div>
             <div class="task-card" id="card-a2" onclick="toggleAlerta('a2')"><span class="task-label">Falta de produtos</span><span class="status-badge" id="badge-a2">Pendente</span></div>
             <div class="task-card" id="card-a4" onclick="toggleAlerta('a4')"><span class="task-label">Diferença de caixa</span><span class="status-badge" id="badge-a4">Pendente</span></div>
-            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas..." style="width:100%; padding:12px; border-radius:12px; border:1px solid #ccc; font-family:inherit; mt-10" oninput="salvarEstadoLocal()"></textarea>
+            <textarea id="detalhes-alertas" rows="3" placeholder="Detalhes dos alertas..." style="width:100%; padding:12px; border-radius:12px; border:1px solid #ccc; font-family:inherit; mt-10" oninput="salvarEstado()"></textarea>
         </div>
 
         <button class="btn-main btn-submit" onclick="abrirConfirmacao()">✓ Enviar para WhatsApp</button>
         <button class="btn-main" id="btn-notify" style="background:#fbc02d; color:#1e293b; margin-top:10px;" onclick="ativarNotificacao()">🔔 Ativar Lembrete</button>
-        <button class="btn-main" style="background:#64748b; color:white; margin-top:10px; font-size:12px;" onclick="resetarChecklist()">Limpar Tudo</button>
+        <button class="btn-main" style="background:#64748b; color:white; margin-top:10px; font-size:12px;" onclick="limparTudo()">Limpar Tudo</button>
     </div>
 
     <div id="overlay" class="modal-overlay" onclick="fecharModais()"></div>
@@ -259,11 +258,9 @@
 
     <script>
         const IMGBB_KEY = "7a4821a0efd21d3a37b8307704231fec";
-        // Puxa o estado salvo na memória (ou cria um objeto vazio se não tiver)
-        let tarefasStatus = JSON.parse(localStorage.getItem('gptech_status')) || {};
+        let tarefasStatus = {};
         let idAtual = "";
 
-        // Inicialização dos Dias da Semana
         const dias = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
         const hoje = dias[new Date().getDay()];
         if(document.getElementById('group-'+hoje)) document.getElementById('group-'+hoje).classList.add('day-highlight');
@@ -271,67 +268,64 @@
             if(c.closest('.task-item-group').dataset.day !== hoje) c.classList.add('disabled');
         });
 
-        // --- SISTEMA DE AUTO-SAVE (LOCALSTORAGE) ---
-        function salvarEstadoLocal() {
-            localStorage.setItem('gptech_status', JSON.stringify(tarefasStatus));
-            const inputs = {
+        // ----------------------------------------------------
+        // SISTEMA DE BACKUP GP TECH (SALVAMENTO AUTOMÁTICO)
+        // ----------------------------------------------------
+        function salvarEstado() {
+            const estado = {
+                tarefas: tarefasStatus,
                 obsF1: document.getElementById('obs-f1').value,
                 obsF2: document.getElementById('obs-f2').value,
                 obsGeral: document.getElementById('obs-geral').value,
-                detalhesAlertas: document.getElementById('detalhes-alertas').value
+                detAlertas: document.getElementById('detalhes-alertas').value
             };
-            localStorage.setItem('gptech_inputs', JSON.stringify(inputs));
+            localStorage.setItem('gptech_checklist', JSON.stringify(estado));
         }
 
-        function carregarEstadoLocal() {
-            // Restaura os textos
-            const inputsStr = localStorage.getItem('gptech_inputs');
-            if (inputsStr) {
-                const inputs = JSON.parse(inputsStr);
-                if(document.getElementById('obs-f1')) document.getElementById('obs-f1').value = inputs.obsF1 || '';
-                if(document.getElementById('obs-f2')) document.getElementById('obs-f2').value = inputs.obsF2 || '';
-                if(document.getElementById('obs-geral')) document.getElementById('obs-geral').value = inputs.obsGeral || '';
-                if(document.getElementById('detalhes-alertas')) document.getElementById('detalhes-alertas').value = inputs.detalhesAlertas || '';
-            }
-
-            // Restaura os Cards (Visual)
-            for (let id in tarefasStatus) {
-                const status = tarefasStatus[id];
-                const card = document.getElementById('card-' + id);
-                const badge = document.getElementById('badge-' + id);
-                if(!card || !badge) continue;
-
-                if (id.startsWith('a')) {
-                    if(status === 'ERROR') {
-                        card.classList.add('status-error');
-                        badge.innerText = "⚠️ ATIVO";
-                        badge.className = "status-badge error";
+        function carregarEstado() {
+            const salvo = localStorage.getItem('gptech_checklist');
+            if(salvo) {
+                const estado = JSON.parse(salvo);
+                tarefasStatus = estado.tarefas || {};
+                
+                Object.keys(tarefasStatus).forEach(id => {
+                    const card = document.getElementById('card-'+id);
+                    const badge = document.getElementById('badge-'+id);
+                    if(card && badge) {
+                        const st = tarefasStatus[id];
+                        if(id.startsWith('a')) {
+                             card.classList.add('status-error');
+                             badge.innerText = "⚠️ ATIVO";
+                             badge.className = "status-badge error";
+                        } else {
+                            if(st === 'DONE') {
+                                card.classList.add('status-done');
+                                badge.innerText = "Feito ✅"; badge.className = "status-badge done";
+                            } else {
+                                card.classList.add('status-error');
+                                badge.innerText = "Não Feito ❌"; badge.className = "status-badge error";
+                            }
+                        }
                     }
-                } else {
-                    if (status === 'DONE') {
-                        card.classList.add('status-done');
-                        badge.innerText = "Feito ✅"; 
-                        badge.className = "status-badge done";
-                    } else if (status === 'ERROR') {
-                        card.classList.add('status-error');
-                        badge.innerText = "Não Feito ❌"; 
-                        badge.className = "status-badge error";
-                    }
-                }
+                });
+
+                document.getElementById('obs-f1').value = estado.obsF1 || "";
+                document.getElementById('obs-f2').value = estado.obsF2 || "";
+                document.getElementById('obs-geral').value = estado.obsGeral || "";
+                document.getElementById('detalhes-alertas').value = estado.detAlertas || "";
+                
+                atualizarProgresso();
             }
-            atualizarProgresso();
         }
+        
+        // Puxa o backup assim que a página carrega
+        window.onload = carregarEstado;
 
-        // Função oficial para limpar o app para o dia seguinte
-        window.resetarChecklist = function() {
-            localStorage.removeItem('gptech_status');
-            localStorage.removeItem('gptech_inputs');
+        function limparTudo() {
+            localStorage.removeItem('gptech_checklist');
             window.location.reload();
-        };
-
-        // Carrega os dados assim que o app abre
-        window.addEventListener('DOMContentLoaded', carregarEstadoLocal);
-        // -------------------------------------------
+        }
+        // ----------------------------------------------------
 
         function toggleAlerta(id) {
             const card = document.getElementById('card-'+id);
@@ -347,7 +341,7 @@
                 badge.innerText = "⚠️ ATIVO";
                 badge.className = "status-badge error";
             }
-            salvarEstadoLocal(); // Salva na memória
+            salvarEstado(); // Salva no backup
         }
 
         function abrirDecisao(id, titulo) {
@@ -377,7 +371,7 @@
             }
             fecharModais(); 
             atualizarProgresso();
-            salvarEstadoLocal(); // Salva na memória
+            salvarEstado(); // Salva no backup
         }
 
         function atualizarProgresso() {
@@ -390,7 +384,12 @@
             document.getElementById('progress-text').innerText = pct+'% CONCLUÍDO';
         }
 
-        function fotoOk(input) { if(input.files.length > 0) input.parentElement.classList.add('has-photo'); }
+        function fotoOk(input) { 
+            if(input.files.length > 0) {
+                input.parentElement.classList.add('has-photo'); 
+            }
+        }
+        
         function toggleWeekly() { document.getElementById('weekly-content').classList.toggle('show'); }
         function abrirConfirmacao() { document.getElementById('overlay').classList.add('show'); document.getElementById('m-confirm').classList.add('show'); }
 
