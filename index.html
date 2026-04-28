@@ -65,7 +65,8 @@
           }
 
           fecharTodosModais();
-          window.location.href = `https://api.whatsapp.com/send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
+          // TROCADO AQUI PARA WA.ME PARA ABRIR DIRETO
+          window.location.href = `https://wa.me/5519993405480?text=${encodeURIComponent(textoWhatsApp)}`;
           
           btn.innerText = "Sim, Enviar";
           btn.disabled = false;
@@ -108,7 +109,6 @@
         .task-item-group { display: flex; flex-direction: column; padding: 15px; border-bottom: 1px solid #eeeeee; transition: background-color 0.2s; }
         .task-row { display: flex; align-items: center; width: 100%; transition: opacity 0.3s; }
         
-        /* FIX DO LAYOUT DA CÂMERA */
         .camera-obs-row { 
             display: flex; 
             gap: 10px; 
@@ -125,7 +125,7 @@
             border-radius: 8px; 
             font-size: 14px; 
             background-color: #fafafa; 
-            min-width: 0; /* Evita que o input empurre o botão pra fora */
+            min-width: 0; 
         }
         .btn-camera { 
             background: #f0f0f0; 
@@ -137,15 +137,12 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            flex-shrink: 0; /* Garante que o botão não amasse */
+            flex-shrink: 0; 
             font-size: 20px;
         }
         .btn-camera.has-photo { background: #e8f5e9; border-color: #2e7d32; }
 
-        /* ESCONDER O INPUT PADRÃO DE VEZ */
-        .hidden-input {
-            display: none !important;
-        }
+        .hidden-input { display: none !important; }
 
         .completed { background-color: #e8f5e9; }
         .completed label { color: var(--text-muted); text-decoration: line-through; }
@@ -475,7 +472,8 @@
                 window.salvarNoBancoDaGPTech(text, marcadasRoutine);
             } else {
                 fecharTodosModais();
-                window.location.href = `https://api.whatsapp.com/send?phone=${NUMERO_WHATSAPP}&text=${encodeURIComponent(text)}`;
+                // TROCADO AQUI PARA WA.ME PARA ABRIR DIRETO
+                window.location.href = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(text)}`;
             }
         }
 
