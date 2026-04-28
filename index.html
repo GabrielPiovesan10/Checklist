@@ -74,7 +74,7 @@
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
+        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; overscroll-behavior-y: none; }
 
         :root {
             --primary-color: #2e7d32;
@@ -108,11 +108,44 @@
         .task-item-group { display: flex; flex-direction: column; padding: 15px; border-bottom: 1px solid #eeeeee; transition: background-color 0.2s; }
         .task-row { display: flex; align-items: center; width: 100%; transition: opacity 0.3s; }
         
-        /* NOVO: Estilo da Câmera no Checklist */
-        .camera-obs-row { display: flex; gap: 8px; margin-top: 10px; margin-left: 39px; align-items: center; }
-        .task-obs-input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background-color: #fafafa; font-family: inherit; }
-        .btn-camera { background: #f0f0f0; border: 1px solid #ccc; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 45px; height: 40px; flex-shrink: 0; }
+        /* FIX DO LAYOUT DA CÂMERA */
+        .camera-obs-row { 
+            display: flex; 
+            gap: 10px; 
+            margin-top: 10px; 
+            margin-left: 39px; 
+            margin-right: 15px;
+            align-items: center; 
+            justify-content: space-between;
+        }
+        .task-obs-input { 
+            flex: 1; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            background-color: #fafafa; 
+            min-width: 0; /* Evita que o input empurre o botão pra fora */
+        }
+        .btn-camera { 
+            background: #f0f0f0; 
+            border: 1px solid #ccc; 
+            width: 50px; 
+            height: 45px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0; /* Garante que o botão não amasse */
+            font-size: 20px;
+        }
         .btn-camera.has-photo { background: #e8f5e9; border-color: #2e7d32; }
+
+        /* ESCONDER O INPUT PADRÃO DE VEZ */
+        .hidden-input {
+            display: none !important;
+        }
 
         .completed { background-color: #e8f5e9; }
         .completed label { color: var(--text-muted); text-decoration: line-through; }
@@ -144,8 +177,6 @@
         .modal-overlay.show { opacity: 1; visibility: visible; }
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 999; width: 85%; max-width: 400px; text-align: center; opacity: 0; visibility: hidden; scale: 0.8; transition: all 0.3s ease; }
         .modal.show { opacity: 1; visibility: visible; scale: 1; }
-        .modal-header { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: var(--primary-color); }
-        .modal-body { font-size: 16px; margin-bottom: 25px; line-height: 1.5; color: var(--text-main); }
         .modal-footer { display: flex; justify-content: space-around; gap: 10px; }
         .modal-btn { padding: 12px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; flex-grow: 1; }
         .modal-btn-confirm { background-color: var(--whatsapp-color); color: white; }
@@ -166,6 +197,7 @@
     </header>
 
     <div class="container">
+        
         <div class="category">
             <h2>1. Abertura (Manhã)</h2>
             <div class="task-list">
@@ -235,7 +267,7 @@
                     <div class="camera-obs-row">
                         <input type="text" id="obs-f1" class="task-obs-input" placeholder="Situação da Cozinha">
                         <label for="foto-f1" class="btn-camera" id="label-foto-f1">
-                            📸 <input type="file" accept="image/*" capture="environment" id="foto-f1" class="hidden camera-input">
+                            📸 <input type="file" accept="image/*" capture="environment" id="foto-f1" class="hidden-input camera-input">
                         </label>
                     </div>
                 </div>
@@ -246,7 +278,7 @@
                     <div class="camera-obs-row">
                         <input type="text" id="obs-f2" class="task-obs-input" placeholder="Situação do Salão">
                         <label for="foto-f2" class="btn-camera" id="label-foto-f2">
-                            📸 <input type="file" accept="image/*" capture="environment" id="foto-f2" class="hidden camera-input">
+                            📸 <input type="file" accept="image/*" capture="environment" id="foto-f2" class="hidden-input camera-input">
                         </label>
                     </div>
                 </div>
@@ -319,7 +351,6 @@
             else { box.disabled = true; box.closest('.task-row').style.opacity = '0.4'; }
         });
 
-        // Mudar cor do botão de câmera quando tirar foto
         document.querySelectorAll('.camera-input').forEach(input => {
             input.addEventListener('change', function() {
                 if(this.files.length > 0) this.parentElement.classList.add('has-photo');
@@ -368,10 +399,9 @@
         async function iniciarProcessoDeEnvio() {
             const btnConfirm = document.querySelector('.modal-btn-confirm');
             const modalBody = document.getElementById('modal-body-text');
-            
             btnConfirm.disabled = true;
             btnConfirm.innerText = "Subindo fotos...";
-            modalBody.innerText = "Aguarde o upload das fotos capturadas...";
+            modalBody.innerText = "Aguarde o upload das fotos...";
 
             let linkCozinha = "";
             let linkSalao = "";
@@ -383,7 +413,7 @@
                 if(f2) linkSalao = await uploadParaImgBB(f2);
                 finalizarEEnviar(linkCozinha, linkSalao);
             } catch (e) {
-                alert("Erro ao subir fotos. Verifique a internet.");
+                alert("Erro ao subir fotos.");
                 btnConfirm.disabled = false;
                 btnConfirm.innerText = "Sim, Enviar";
             }
