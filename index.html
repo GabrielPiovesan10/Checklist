@@ -446,7 +446,8 @@
                 enviarZap(links);
             } catch(e) { 
                 alert("Erro: " + e.message); 
-                btn.disabled = false; btn.innerText = "Sim, Enviar"; 
+                const btnErr = document.getElementById('btn-envio');
+                if(btnErr) { btnErr.disabled = false; btnErr.innerText = "Sim, Enviar"; }
             }
         }
 
@@ -457,7 +458,6 @@
             const json = await res.json(); return json.data.url;
         }
 
-        // --- FUNÇÃO ENVIAR ZAP ATUALIZADA (GP TECH PROFESSIONAL) ---
         function enviarZap(links) {
             const totalTasks = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"]):not(.extra-weekly)').length;
             const semanaisExtras = ['t30', 't31', 't33'];
@@ -549,8 +549,7 @@
             }
 
             const btn = document.getElementById('btn-envio');
-            btn.disabled = false;
-            btn.innerText = "Sim, Enviar";
+            if(btn) { btn.disabled = false; btn.innerText = "Sim, Enviar"; }
         }
 
         function ativarNotificacao() { OneSignalDeferred.push(f => f.Notifications.requestPermission()); }
