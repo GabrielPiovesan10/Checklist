@@ -129,33 +129,9 @@
         .m-error { background: #ef4444; color: white; }
         .m-cancel { background: #f1f5f9; color: #94a3b8; }
 
-        /* Estilos do Rodapé da GP Tech */
-        .footer-gp {
-            text-align: center;
-            margin-top: 40px;
-            padding-bottom: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            opacity: 0.9;
-        }
-        .logo-gp {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); /* Brilho neon verde */
-            object-fit: cover;
-            border: 2px solid #22c55e;
-        }
-        .footer-gp span {
-            font-size: 15px;
-            font-weight: 900;
-            color: #334155;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
+        .footer-gp { text-align: center; margin-top: 40px; padding-bottom: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; opacity: 0.9; }
+        .logo-gp { width: 55px; height: 55px; border-radius: 50%; box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); object-fit: cover; border: 2px solid #22c55e; }
+        .footer-gp span { font-size: 15px; font-weight: 900; color: #334155; letter-spacing: 1px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -297,12 +273,12 @@
 
         const dias = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
         const hoje = dias[new Date().getDay()];
+        
         if(document.getElementById('group-'+hoje)) document.getElementById('group-'+hoje).classList.add('day-highlight');
         document.querySelectorAll('.conditional').forEach(c => {
             if(c.closest('.task-item-group').dataset.day !== hoje) c.classList.add('disabled');
         });
 
-        // Backup GP Tech
         function salvarEstado() {
             const estado = {
                 tarefas: tarefasStatus,
@@ -455,11 +431,10 @@
                 let img1 = document.getElementById('foto-f1').files[0];
                 let img2 = document.getElementById('foto-f2').files[0];
                 
-                let b1 = null, b2 = null;
                 if(img1 || img2) {
                     btn.innerText = "⚡ Comprimindo...";
-                    if(img1) b1 = await comprimir(img1);
-                    if(img2) b2 = await comprimir(img2);
+                    let b1 = img1 ? await comprimir(img1) : null;
+                    let b2 = img2 ? await comprimir(img2) : null;
 
                     btn.innerText = "🚀 Subindo fotos...";
                     const [url1, url2] = await Promise.all([
@@ -482,83 +457,100 @@
             const json = await res.json(); return json.data.url;
         }
 
+        // --- FUNÇÃO ENVIAR ZAP ATUALIZADA (GP TECH PROFESSIONAL) ---
         function enviarZap(links) {
             const totalTasks = document.querySelectorAll('.task-card:not(.disabled):not([id^="card-a"]):not(.extra-weekly)').length;
             const semanaisExtras = ['t30', 't31', 't33'];
             const tarefasFeitasCount = Object.keys(tarefasStatus).filter(k => tarefasStatus[k] === 'DONE' && !k.startsWith('a') && !semanaisExtras.includes(k)).length;
             const pct = totalTasks === 0 ? 0 : Math.round((tarefasFeitasCount / totalTasks) * 100);
 
-            let msg = `*📋 RELATÓRIO DO DIA - SEO PACHECO*\n`;
-            msg += `🗓️ *Data:* ${new Date().toLocaleDateString('pt-BR')}\n`;
-            msg += `📊 *Desempenho Diário:* ${pct}% Concluído\n`;
-            msg += `---------------------------------\n\n`;
+            let msg = `*📋 RELATÓRIO OPERACIONAL | SEO PACHECO*\n`;
+            msg += `*📅 DATA:* ${new Date().toLocaleDateString('pt-BR')}\n`;
+            msg += `*📊 STATUS GERAL:* ${pct === 100 ? '✅ 100% CONCLUÍDO' : '⚠️ ' + pct + '% CONCLUÍDO'}\n`;
+            msg += `──────────────────────\n\n`;
 
-            let feitas = [], extrasFeitas = [], erros = [], pendentes = [];
-
-            document.querySelectorAll('.task-card:not(.disabled)').forEach(card => {
-                const id = card.id.replace('card-','');
-                if(id.startsWith('a')) return; 
-                
-                const isExtra = semanaisExtras.includes(id);
-                if(isExtra && !tarefasStatus[id]) return;
-
-                const label = card.querySelector('.task-label').innerText;
-                const st = tarefasStatus[id];
-
-                if(st === 'DONE') { if(isExtra) extrasFeitas.push(label); else feitas.push(label); }
-                else if(st === 'ERROR') erros.push(label);
-                else pendentes.push(label);
-            });
-
-            if(erros.length > 0 || pendentes.length > 0) {
-                msg += `*🚨 ATENÇÃO NECESSÁRIA:*\n`;
-                erros.forEach(t => msg += `❌ ${t}\n`);
-                pendentes.forEach(t => msg += `⏳ ${t} (Pendente)\n`);
+            const alertas = Object.keys(tarefasStatus).filter(k => k.startsWith('a'));
+            if(alertas.length > 0) {
+                msg += `*🚨 OCORRÊNCIAS E ALERTAS*\n`;
+                alertas.forEach(id => { 
+                    msg += `• ${document.getElementById('card-'+id).querySelector('.task-label').innerText}\n`; 
+                });
+                const det = document.getElementById('detalhes-alertas').value.trim();
+                if(det) msg += `_↳ Detalhes: ${det}_\n`;
                 msg += `\n`;
             }
 
             const obsF1 = document.getElementById('obs-f1').value.trim();
             const obsF2 = document.getElementById('obs-f2').value.trim();
-
             if(obsF1 || links.f1 || obsF2 || links.f2) {
-                msg += `*📸 REGISTROS DE FECHAMENTO:*\n`;
+                msg += `*📸 REGISTROS DE FECHAMENTO*\n`;
                 if(obsF1 || links.f1) {
-                    msg += `*🍳 Cozinha:* ${obsF1 ? obsF1 : 'Sem observações'}\n`;
-                    if(links.f1) msg += `🔗 Link da Foto: ${links.f1}\n`;
+                    msg += `🍳 *Cozinha:* ${obsF1 ? obsF1 : 'OK'}\n`;
+                    if(links.f1) msg += `🔗 Link Foto Cozinha: ${links.f1}\n`;
                 }
                 if(obsF2 || links.f2) {
-                    msg += `*🪑 Salão:* ${obsF2 ? obsF2 : 'Sem observações'}\n`;
-                    if(links.f2) msg += `🔗 Link da Foto: ${links.f2}\n`;
+                    msg += `🪑 *Salão:* ${obsF2 ? obsF2 : 'OK'}\n`;
+                    if(links.f2) msg += `🔗 Link Foto Salão: ${links.f2}\n`;
                 }
+                msg += `\n`;
+            }
+
+            let feitasRotina = [], feitasEspeciais = [], extrasFeitas = [];
+            document.querySelectorAll('.task-card:not(.disabled)').forEach(card => {
+                const id = card.id.replace('card-','');
+                if(id.startsWith('a') || tarefasStatus[id] !== 'DONE') return;
+                const label = card.querySelector('.task-label').innerText;
+                if(semanaisExtras.includes(id)) extrasFeitas.push(label);
+                else if(card.classList.contains('conditional')) feitasEspeciais.push(label);
+                else feitasRotina.push(label);
+            });
+
+            if(feitasRotina.length > 0) {
+                msg += `*✅ ROTINA DIÁRIA CONCLUÍDA*\n`;
+                feitasRotina.forEach(t => msg += `  • ${t}\n`);
+                msg += `\n`;
+            }
+            if(feitasEspeciais.length > 0) {
+                msg += `*📅 TAREFAS DE ${hoje.toUpperCase()}*\n`;
+                feitasEspeciais.forEach(t => msg += `  • ${t}\n`);
+                msg += `\n`;
+            }
+            if(extrasFeitas.length > 0) {
+                msg += `*✨ CONTROLE SEMANAL CONCLUÍDO*\n`;
+                extrasFeitas.forEach(t => msg += `  • ${t}\n`);
+                msg += `\n`;
+            }
+
+            let erros = [], pendentes = [];
+            document.querySelectorAll('.task-card:not(.disabled)').forEach(card => {
+                const id = card.id.replace('card-','');
+                if(id.startsWith('a') || semanaisExtras.includes(id)) return;
+                const label = card.querySelector('.task-label').innerText;
+                const st = tarefasStatus[id];
+                if(st === 'ERROR') erros.push(label);
+                else if(!st) pendentes.push(label);
+            });
+
+            if(erros.length > 0 || pendentes.length > 0) {
+                msg += `*❌ ITENS PENDENTES OU NÃO REALIZADOS*\n`;
+                erros.forEach(t => msg += `  • [NÃO FEITO] ${t}\n`);
+                pendentes.forEach(t => msg += `  • [PENDENTE] ${t}\n`);
                 msg += `\n`;
             }
 
             const og = document.getElementById('obs-geral').value.trim(); 
-            if(og) msg += `*📝 OBSERVAÇÕES GERAIS:*\n_${og}_\n\n`;
+            if(og) msg += `*📝 NOTAS ADICIONAIS*\n_${og}_\n\n`;
 
-            const alertas = Object.keys(tarefasStatus).filter(k => k.startsWith('a'));
-            if(alertas.length > 0) {
-                msg += `*⚠️ OCORRÊNCIAS REGISTRADAS:*\n`;
-                alertas.forEach(id => { msg += `- ${document.getElementById('card-'+id).querySelector('.task-label').innerText}\n`; });
-                const det = document.getElementById('detalhes-alertas').value.trim();
-                if(det) msg += `_Detalhes: ${det}_\n`;
-                msg += `\n`;
+            msg += `──────────────────────\n`;
+            msg += `_🚀 Sistema de Gestão desenvolvido por GP Tech_`;
+
+            if(window.salvarNoBancoDaGPTech) {
+                window.salvarNoBancoDaGPTech(msg, tarefasFeitasCount);
             }
 
-            if(feitas.length > 0) {
-                msg += `*✅ TAREFAS CONCLUÍDAS (${feitas.length}):*\n`;
-                feitas.forEach(t => msg += `✔️ ${t}\n`);
-                msg += `\n`;
-            }
-
-            if(extrasFeitas.length > 0) {
-                msg += `*🌟 EXTRAS (SEMANAL):*\n`;
-                extrasFeitas.forEach(t => msg += `✔️ ${t}\n`);
-                msg += `\n`;
-            }
-
-            msg += `---------------------------------\n_🚀 Sistema desenvolvido por GP Tech Solutions_`;
-            if(window.salvarNoBancoDaGPTech) window.salvarNoBancoDaGPTech(msg, Object.keys(tarefasStatus).length);
+            const btn = document.getElementById('btn-envio');
+            btn.disabled = false;
+            btn.innerText = "Sim, Enviar";
         }
 
         function ativarNotificacao() { OneSignalDeferred.push(f => f.Notifications.requestPermission()); }
