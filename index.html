@@ -55,7 +55,7 @@
               horario_exato: serverTimestamp()
           }).catch(e => console.error("Erro ao salvar:", e));
           
-          const linkWhatsApp = `whatsapp://send?phone=5519974179472&text=${encodeURIComponent(textoWhatsApp)}`;
+          const linkWhatsApp = `whatsapp://send?phone=5519993405480&text=${encodeURIComponent(textoWhatsApp)}`;
           
           const modalH = document.querySelector('#m-confirm .modal-h');
           const modalBtns = document.querySelector('#m-confirm .modal-btns');
@@ -464,10 +464,10 @@
             const tarefasFeitasCount = Object.keys(tarefasStatus).filter(k => tarefasStatus[k] === 'DONE' && !k.startsWith('a') && !semanaisExtras.includes(k)).length;
             const pct = totalTasks === 0 ? 0 : Math.round((tarefasFeitasCount / totalTasks) * 100);
 
-            let msg = `*📋 RELATÓRIO OPERACIONAL | SEO PACHECO*\n`;
+            let msg = `*📋 RELATÓRIO DIARIO | GERÊNCIA*\n`;
             msg += `*📅 DATA:* ${new Date().toLocaleDateString('pt-BR')}\n`;
             msg += `*📊 STATUS GERAL:* ${pct === 100 ? '✅ 100% CONCLUÍDO' : '⚠️ ' + pct + '% CONCLUÍDO'}\n`;
-            msg += `──────────────────────\n\n`;
+            msg += `────────────────\n\n`;
 
             const alertas = Object.keys(tarefasStatus).filter(k => k.startsWith('a'));
             if(alertas.length > 0) {
@@ -541,7 +541,7 @@
             const og = document.getElementById('obs-geral').value.trim(); 
             if(og) msg += `*📝 NOTAS ADICIONAIS*\n_${og}_\n\n`;
 
-            msg += `──────────────────────\n`;
+            msg += `────────────────\n`;
             msg += `_🚀 Sistema de Gestão desenvolvido por GP Tech_`;
 
             if(window.salvarNoBancoDaGPTech) {
